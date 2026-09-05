@@ -60,6 +60,7 @@ EMAIL = "office@mabc.org.nz"
 # footer links here. Point it at the repository once it has one.
 SOURCE = "https://github.com/gahingwoo/mabc-ws"
 AUTHOR = "Ga Hing Woo (Jiaxing Hu)"
+AUTHOR_URL = "https://github.com/gahingwoo"
 
 # slug, directory, page title, subtitle shown beside it, meta description
 PAGES = [
@@ -339,7 +340,7 @@ SHELL = """<!DOCTYPE html>
       <section class="pf-v6-c-page__main-section pf-m-no-fill foot-legal">
         <div class="pf-v6-c-page__main-body">
           <span>Copyright &copy; 1915&ndash;<span id="year">%(year)s</span> %(name)s Church</span>
-          <span>Website made by %(author)s</span>
+          <span>Website made by <a href="%(author_url)s">%(author)s</a></span>
           <span><a href="%(source)s">View page source</a></span>
           <span><button class="link-button" type="button" id="about-page-open">About this site</button></span>
           <span><a href="/about/#contact">Contact</a></span>
@@ -417,14 +418,19 @@ def about_rows(pf_version):
     is true of every page, and the two claims that matter most to a visitor,
     that nothing counts them and nothing but a theme choice is kept, are things
     the code either does or does not do."""
+    def link(url, label):
+        return '<a href="%s">%s</a>' % (html.escape(url), html.escape(label))
+
+    # Values are finished HTML: plain strings are escaped here, the two that
+    # lead somewhere are anchors.
     rows = [
-        ("Built with", pf_version),
+        ("Built with", html.escape(pf_version)),
         ("Analytics", "None. Your visit is not counted."),
         ("Loaded from elsewhere", "The map on Plan a visit, from Google"),
         ("Kept on your device", "Your light or dark choice"),
         ("Licence", "GPL-2.0, code only"),
-        ("Made by", AUTHOR),
-        ("Source", SOURCE.replace("https://", "")),
+        ("Made by", link(AUTHOR_URL, AUTHOR)),
+        ("Source", link(SOURCE, SOURCE.replace("https://", ""))),
     ]
     return "\n".join(
         '        <div class="pf-v6-c-description-list__group">'
@@ -432,7 +438,7 @@ def about_rows(pf_version):
         '<span class="pf-v6-c-description-list__text">%s</span></dt>'
         '<dd class="pf-v6-c-description-list__description">'
         '<div class="pf-v6-c-description-list__text">%s</div></dd></div>'
-        % (term, html.escape(value)) for term, value in rows)
+        % (term, value) for term, value in rows)
 
 
 def build():
@@ -490,7 +496,7 @@ def build():
             canonical=SITE + href, site=SITE, name=NAME, address=ADDRESS,
             heading=heading,
             phone=PHONE, email=EMAIL, year=date.today().year,
-            author=AUTHOR, source=SOURCE,
+            author=AUTHOR, author_url=AUTHOR_URL, source=SOURCE,
             head="" if slug == "index" else (
                 '            <div class="page-head">\n'
                 '              <h1 class="page-title" id="page-title">%s <span class="subtitle">%s</span></h1>\n'

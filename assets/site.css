@@ -518,7 +518,8 @@ a[href^="mailto:"]:not(:where(.pf-v6-c-nav__link))::after,
    makes the whole page wider than a narrow phone rather than wrapping. Let
    links break mid-word as a last resort; ordinary link text still breaks at
    its spaces first, so this only shows up where it is needed. */
-.pf-v6-c-card__body a, .pf-v6-c-card__footer a, .site-footer a { overflow-wrap: anywhere; }
+.pf-v6-c-card__body a, .pf-v6-c-card__footer a, .site-footer a,
+.pf-v6-c-about-modal-box a { overflow-wrap: anywhere; }
 
 /* ---- about this page ----
    PatternFly's about modal, opened from the footer. The trigger is a button
