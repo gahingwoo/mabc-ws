@@ -30,6 +30,7 @@ gahingwoo.com, which runs the same one.
 
 import hashlib
 import html
+import json
 import pathlib
 import re
 import sys
@@ -164,6 +165,28 @@ def cards(fragment):
         r'<div class="pf-v6-c-card"[^>]*\bid="([^"]+)"[^>]*data-rail="([^"]+)"', fragment)
 
 
+def search_records(slug, href, heading, fragment):
+    """One record per card, built from the page itself: a card is findable
+    because it is there, not because someone remembered to index it. Slices
+    run from one card to the next rather than matching a closing tag, which
+    nesting makes unreliable."""
+    def text_of(chunk):
+        chunk = re.sub(r"(?is)<(script|style|svg)[^>]*>.*?</\1>", " ", chunk)
+        return re.sub(r"\s+", " ", html.unescape(re.sub(r"<[^>]+>", " ", chunk))).strip()
+
+    starts = [(m.start(), m.group(1), text_of(m.group(2))) for m in re.finditer(
+        r'<div class="pf-v6-c-card"[^>]*\bid="([^"]+)"[^>]*>\s*'
+        r'(?:<div class="pf-v6-c-card__header[^>]*>.*?</div>\s*)?'
+        r'<div class="pf-v6-c-card__title"><h2 class="pf-v6-c-card__title-text">(.*?)</h2>',
+        fragment, re.S)]
+    out = []
+    for i, (pos, cid, title) in enumerate(starts):
+        end = starts[i + 1][0] if i + 1 < len(starts) else len(fragment)
+        out.append({"t": title, "u": href + "#" + cid, "p": heading,
+                    "x": text_of(fragment[pos:end])})
+    return out
+
+
 def render_nav(current):
     out = []
     for title, items in NAV:
@@ -262,6 +285,40 @@ SHELL = """<!DOCTYPE html>
       </div>
     </div>
     <div class="pf-v6-c-masthead__content">
+      <div class="search-slot">
+        <div class="pf-v6-c-input-group pf-m-search-expandable pf-m-plain site-search" id="site-search">
+          <div class="pf-v6-c-input-group__item pf-m-search-input">
+            <div class="pf-v6-c-text-input-group">
+              <div class="pf-v6-c-text-input-group__main pf-m-icon">
+                <span class="pf-v6-c-text-input-group__text">
+                  <span class="pf-v6-c-text-input-group__icon"><svg class="pf-v6-svg" fill="currentColor" viewBox="0 0 512 512" aria-hidden="true" role="img" width="1em" height="1em"><path d="M505 442.7L405.3 343c-4.5-4.5-10.6-7-17-7H372c27.6-35.3 44-79.7 44-128C416 93.1 322.9 0 208 0S0 93.1 0 208s93.1 208 208 208c48.3 0 92.7-16.4 128-44v16.3c0 6.4 2.5 12.5 7 17l99.7 99.7c9.4 9.4 24.6 9.4 33.9 0l28.3-28.3c9.4-9.4 9.4-24.6.1-34zM208 336c-70.7 0-128-57.2-128-128 0-70.7 57.2-128 128-128 70.7 0 128 57.2 128 128 0 70.7-57.2 128-128 128z"/></svg></span>
+                  <input class="pf-v6-c-text-input-group__text-input" type="text" id="search-input"
+                         placeholder="Search this site" autocomplete="off" spellcheck="false"
+                         aria-label="Search this site" role="combobox" aria-expanded="false"
+                         aria-controls="search-results" aria-autocomplete="list"
+                         data-index="/assets/search-index.json">
+                </span>
+              </div>
+            </div>
+          </div>
+          <div class="pf-v6-c-input-group__item pf-m-search-expand pf-m-plain">
+            <button class="pf-v6-c-button pf-m-plain" type="button" id="search-open"
+                    aria-label="Search this site" aria-expanded="false">
+              <span class="pf-v6-c-button__icon"><svg class="pf-v6-svg" fill="currentColor" viewBox="0 0 512 512" aria-hidden="true" role="img" width="1em" height="1em"><path d="M505 442.7L405.3 343c-4.5-4.5-10.6-7-17-7H372c27.6-35.3 44-79.7 44-128C416 93.1 322.9 0 208 0S0 93.1 0 208s93.1 208 208 208c48.3 0 92.7-16.4 128-44v16.3c0 6.4 2.5 12.5 7 17l99.7 99.7c9.4 9.4 24.6 9.4 33.9 0l28.3-28.3c9.4-9.4 9.4-24.6.1-34zM208 336c-70.7 0-128-57.2-128-128 0-70.7 57.2-128 128-128 70.7 0 128 57.2 128 128 0 70.7-57.2 128-128 128z"/></svg></span>
+            </button>
+          </div>
+          <div class="pf-v6-c-input-group__item pf-m-search-action pf-m-plain">
+            <button class="pf-v6-c-button pf-m-plain" type="button" id="search-close" aria-label="Close search">
+              <span class="pf-v6-c-button__icon"><svg class="pf-v6-svg" viewBox="0 0 352 512" fill="currentColor" aria-hidden="true" role="img" width="1em" height="1em"><path d="M242.72 256l100.07-100.07c12.28-12.28 12.28-32.19 0-44.48l-22.24-22.24c-12.28-12.28-32.19-12.28-44.48 0L176 189.28 75.93 89.21c-12.28-12.28-32.19-12.28-44.48 0L9.21 111.45c-12.28 12.28-12.28 32.19 0 44.48L109.28 256 9.21 356.07c-12.28 12.28-12.28 32.19 0 44.48l22.24 22.24c12.28 12.28 32.2 12.28 44.48 0L176 322.72l100.07 100.07c12.28 12.28 32.2 12.28 44.48 0l22.24-22.24c12.28-12.28 12.28-32.19 0-44.48L242.72 256z"/></svg></span>
+            </button>
+          </div>
+        </div>
+        <div class="pf-v6-c-menu search-results" id="search-results" hidden>
+          <div class="pf-v6-c-menu__content">
+            <ul class="pf-v6-c-menu__list" role="listbox" aria-label="Search results" id="search-list"></ul>
+          </div>
+        </div>
+      </div>
       <button class="pf-v6-c-button pf-m-plain theme-toggle" id="theme-toggle" type="button" aria-label="Toggle light and dark theme">
         <span class="pf-v6-c-button__icon"><svg class="pf-v6-svg icon-moon" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true" role="img" width="1em" height="1em"><path d="M10.6 2a8 8 0 1 0 7.4 11 6.6 6.6 0 0 1-7.4-11Z"/></svg><svg class="pf-v6-svg icon-sun" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true" role="img" width="1em" height="1em"><circle cx="10" cy="10" r="3.6"/><path d="M10 1.5v2.2M10 16.3v2.2M1.5 10h2.2M16.3 10h2.2M4 4l1.6 1.6M14.4 14.4 16 16M4 16l1.6-1.6M14.4 5.6 16 4"/></svg></span>
       </button>
@@ -480,6 +537,18 @@ def build():
         "aboutrows": aboutrows,
         "noindex": '<meta name="robots" content="noindex">\n' if IS_PREVIEW else "",
     }
+
+    # The index is written before the pages, so the hash appended to its URL in
+    # the masthead is the hash of the file the reader will actually fetch.
+    records = []
+    for slug, directory, heading, _subtitle, _description in PAGES:
+        frag = CONTENT / (slug + ".html")
+        if not frag.is_file():
+            sys.exit("missing %s" % frag)
+        records += search_records(slug, "/" + (directory + "/" if directory else ""),
+                                  heading, frag.read_text(encoding="utf-8"))
+    (ROOT / "assets/search-index.json").write_text(
+        json.dumps(records, separators=(",", ":"), ensure_ascii=False), encoding="utf-8")
 
     written = []
     for slug, directory, heading, subtitle, description in PAGES:

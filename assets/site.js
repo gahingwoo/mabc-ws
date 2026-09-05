@@ -242,6 +242,143 @@
     io.observe(slot);
   });
 
+  // Search. The index is generated from the pages and fetched the first time
+  // the box is used, so it costs nothing to a reader who never searches.
+  var searchInput = document.getElementById('search-input');
+  if (searchInput) {
+    var panel = document.getElementById('search-results');
+    var list = document.getElementById('search-list');
+    var group = document.getElementById('site-search');
+    var openBtn = document.getElementById('search-open');
+    var closeBtn = document.getElementById('search-close');
+    var index = null, loading = null, active = -1, results = [];
+
+    function load() {
+      if (index) return Promise.resolve(index);
+      if (!loading) {
+        loading = fetch(searchInput.dataset.index)
+          .then(function (r) { return r.ok ? r.json() : []; })
+          .then(function (data) { index = data; return index; })
+          .catch(function () { index = []; return index; });
+      }
+      return loading;
+    }
+
+    function escapeHtml(s) {
+      return s.replace(/[&<>"']/g, function (c) {
+        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+      });
+    }
+
+    // Wrap each occurrence of a token in <mark>, on already-escaped text.
+    function highlight(text, tokens) {
+      var out = escapeHtml(text);
+      tokens.forEach(function (tok) {
+        var re = new RegExp('(' + tok.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ')', 'gi');
+        out = out.replace(re, '<mark>$1</mark>');
+      });
+      return out;
+    }
+
+    function snippetFor(text, tokens) {
+      var lower = text.toLowerCase(), at = -1;
+      for (var i = 0; i < tokens.length && at < 0; i++) at = lower.indexOf(tokens[i]);
+      if (at < 0) at = 0;
+      var start = Math.max(0, at - 50);
+      var cut = text.slice(start, start + 150);
+      return (start > 0 ? '\u2026' : '') + cut + (start + 150 < text.length ? '\u2026' : '');
+    }
+
+    function rank(rec, tokens, q) {
+      var title = rec.t.toLowerCase(), body = (rec.x || '').toLowerCase(), page = rec.p.toLowerCase();
+      for (var i = 0; i < tokens.length; i++) {
+        if (title.indexOf(tokens[i]) < 0 && body.indexOf(tokens[i]) < 0 && page.indexOf(tokens[i]) < 0) return -1;
+      }
+      var score = 0;
+      if (title.indexOf(q) === 0) score += 100;
+      else if (title.indexOf(q) >= 0) score += 60;
+      tokens.forEach(function (t) { if (title.indexOf(t) >= 0) score += 10; });
+      return score;
+    }
+
+    function render(q) {
+      var tokens = q.toLowerCase().split(/\s+/).filter(Boolean);
+      results = (index || []).map(function (rec) { return { rec: rec, score: rank(rec, tokens, q.toLowerCase()) }; })
+        .filter(function (r) { return r.score >= 0; })
+        .sort(function (a, b) { return b.score - a.score; })
+        .slice(0, 8)
+        .map(function (r) { return r.rec; });
+      active = -1;
+      list.innerHTML = '';
+      if (!results.length) {
+        list.innerHTML = '<li class="search-empty" role="presentation">No match for &ldquo;' + escapeHtml(q) + '&rdquo;</li>';
+      } else {
+        results.forEach(function (rec, i) {
+          var li = document.createElement('li');
+          li.className = 'pf-v6-c-menu__list-item';
+          li.setAttribute('role', 'none');
+          li.innerHTML = '<a class="pf-v6-c-menu__item" href="' + rec.u + '" role="option" id="search-opt-' + i + '">' +
+            '<span class="pf-v6-c-menu__item-main"><span class="pf-v6-c-menu__item-text">' +
+            highlight(rec.t, tokens) +
+            '<span class="search-result-page">' + escapeHtml(rec.p) + '</span>' +
+            '<span class="search-result-snippet">' + highlight(snippetFor(rec.x || '', tokens), tokens) + '</span>' +
+            '</span></span></a>';
+          list.appendChild(li);
+        });
+      }
+      open(true);
+    }
+
+    function open(show) {
+      panel.hidden = !show;
+      searchInput.setAttribute('aria-expanded', show ? 'true' : 'false');
+      if (!show) { active = -1; searchInput.removeAttribute('aria-activedescendant'); }
+    }
+
+    function setActive(i) {
+      var opts = list.querySelectorAll('.pf-v6-c-menu__item');
+      if (!opts.length) return;
+      active = (i + opts.length) % opts.length;
+      Array.prototype.forEach.call(opts, function (a, n) {
+        a.classList.toggle('pf-m-focus', n === active);
+        if (n === active) { a.scrollIntoView({ block: 'nearest' }); searchInput.setAttribute('aria-activedescendant', a.id); }
+      });
+    }
+
+    function expand(show) {
+      group.classList.toggle('pf-m-expanded', show);
+      openBtn.setAttribute('aria-expanded', show ? 'true' : 'false');
+      if (show) searchInput.focus();
+      else { searchInput.value = ''; open(false); }
+    }
+
+    function run() {
+      var q = searchInput.value.trim();
+      if (q.length < 2) { open(false); return; }
+      load().then(function () { if (searchInput.value.trim() === q) render(q); });
+    }
+
+    searchInput.addEventListener('input', run);
+    searchInput.addEventListener('focus', function () { if (searchInput.value.trim().length >= 2) run(); });
+    searchInput.addEventListener('keydown', function (e) {
+      if (e.key === 'ArrowDown') { e.preventDefault(); if (panel.hidden) run(); else setActive(active + 1); }
+      else if (e.key === 'ArrowUp') { e.preventDefault(); setActive(active - 1); }
+      else if (e.key === 'Enter') {
+        var opts = list.querySelectorAll('.pf-v6-c-menu__item');
+        if (opts.length) { e.preventDefault(); (opts[active >= 0 ? active : 0]).click(); }
+      } else if (e.key === 'Escape') { if (!panel.hidden) open(false); else { expand(false); openBtn.focus(); } }
+    });
+    openBtn.addEventListener('click', function () { expand(true); });
+    closeBtn.addEventListener('click', function () { expand(false); openBtn.focus(); });
+    document.addEventListener('click', function (e) {
+      if (!e.target.closest('.site-search') && !e.target.closest('.search-results')) {
+        open(false);
+        if (!searchInput.value.trim()) expand(false);
+      }
+    });
+    list.addEventListener('click', function () { open(false); expand(false); });
+  }
+
   // Accordions. The toggle owns the state: aria-expanded says it for assistive
   // technology, hidden takes the panel out for everyone, and PatternFly's
   // pf-m-expanded on the item turns the chevron. An anchor pointing into a

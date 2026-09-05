@@ -348,7 +348,91 @@ a[href^="mailto:"]:not(:where(.pf-v6-c-nav__link))::after,
    PatternFly. The design system's density is the design, so it is left alone. */
 @media (max-width: 35.99rem) {
   .masthead-give { display: none; }
+  /* With the search icon in the row too, four controls and the name come to
+     13px more than a 375px screen holds. The page-chrome inset is the cheapest
+     thing to give up. */
+  .pf-v6-c-masthead { --pf-v6-c-masthead--PaddingInline: var(--pf-t--global--spacer--md); }
+  /* Four controls plus the name need every pixel of a 375px row. The gaps
+     around the identity each come down one step, which frees the 24px the
+     utility end was short of, and it stops wrapping: PatternFly only holds it
+     to one line from md, and by then there is room to spare anyway. */
+  .pf-v6-c-masthead__main {
+    margin-inline-end: var(--pf-t--global--spacer--sm);
+    column-gap: var(--pf-t--global--spacer--sm);
+  }
+  .pf-v6-c-masthead__content {
+    gap: var(--pf-t--global--spacer--sm);
+    flex-wrap: nowrap;
+  }
 }
+
+/* ---- search ----
+   patternfly.org keeps a search in its masthead: an icon that expands into an
+   input. Cockpit's sidebar box filters a list of nav options, which is a
+   different job. The index is generated from the pages by
+   tools/build_search.py and fetched the first time the box is used. */
+.pf-v6-c-masthead__content { position: relative; min-width: 0; }
+.site-search .pf-v6-c-text-input-group__text-input { min-width: 0; }
+/* Collapsed, PatternFly hides the close button with max-width:0 and
+   visibility:hidden but sets no overflow, so the button inside still sticks
+   out of its zero-width item and widens the page. Harmless in a roomy
+   masthead; here it was 10px of horizontal scroll on a phone. */
+.site-search:not(.pf-m-expanded) .pf-v6-c-input-group__item.pf-m-search-action { overflow: hidden; }
+/* PatternFly's input group is width:100% by design; collapsed, this one is a
+   single icon, so it takes only its own width and sits beside the theme
+   toggle instead of stretching across the row. */
+.site-search { width: auto; flex: 0 0 auto; min-width: 0; }
+/* The width cannot be a percentage now that the containing block is the slot
+   the collapsed icon occupies; it is measured against the viewport instead. */
+.site-search.pf-m-expanded { width: min(26rem, calc(100vw - 6rem)); }
+@media (min-width: 48rem) {
+  .pf-v6-c-masthead__content { flex-wrap: nowrap; }
+  }
+
+/* Collapsed, the search is one icon in the row. Expanded, it lifts out of the
+   flex row and lies over the utility links instead of competing with them for
+   space, so opening it can never reflow the masthead or crowd the brand. It
+   hangs off the right edge of the slot it occupies while collapsed, so the
+   button under the pointer does not move as the icon changes. */
+.search-slot { position: relative; display: flex; flex: 0 0 auto; }
+.site-search.pf-m-expanded {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  inset-inline-end: 0;
+  z-index: 2;
+}
+.site-search.pf-m-expanded .pf-v6-c-input-group__item.pf-m-search-input { --pf-v6-c-input-group__item--m-search-text-input--MaxWidth: 100%; }
+.search-results {
+  position: absolute;
+  inset-inline-end: 0;
+  top: calc(100% + var(--pf-t--global--spacer--sm));
+  z-index: var(--pf-t--global--z-index--md);
+  width: min(30rem, calc(100vw - 2 * var(--pf-t--global--spacer--md)));
+  max-height: min(70dvh, 34rem);
+  overflow-y: auto;
+  box-shadow: var(--pf-t--global--box-shadow--md);
+}
+/* Results are read, not scanned as labels, so they wrap; the snippet is held
+   to two lines so one long entry cannot crowd out the rest. */
+.search-results .pf-v6-c-menu__item-text { display: block; white-space: normal; overflow: visible; text-overflow: clip; overflow-wrap: anywhere; }
+.search-results .pf-v6-c-menu__item { align-items: start; }
+.search-result-page { display: block; font-size: var(--pf-t--global--font--size--body--sm); color: var(--pf-t--global--text--color--subtle); }
+.search-result-snippet { display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; font-size: var(--pf-t--global--font--size--body--sm); color: var(--pf-t--global--text--color--subtle); margin-block-start: 2px; }
+/* Below md the field is nearly the width of the screen, so the results are
+   not hung off its right edge: they span the viewport under the masthead,
+   which is the only way they fit. */
+@media (max-width: 47.99rem) {
+  .search-results {
+    position: fixed;
+    inset-inline: var(--pf-t--global--spacer--md);
+    top: calc(var(--masthead-h, 4.5rem) + var(--pf-t--global--spacer--xs));
+    width: auto;
+  }
+}
+.search-results mark { background: var(--pf-t--global--color--nonstatus--yellow--default, #f0ab00); color: inherit; border-radius: 2px; padding: 0 1px; }
+.search-empty { padding: var(--pf-t--global--spacer--md); font-size: var(--pf-t--global--font--size--body--sm); color: var(--pf-t--global--text--color--subtle); }
+@media print { .site-search, .search-results { display: none !important; } }
 
 /* ---- on this page ----
    The pattern patternfly.org uses for its own documentation: the site's
