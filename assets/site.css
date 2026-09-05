@@ -1,0 +1,563 @@
+/*
+ * Copyright (C) 2026 Jiaxing Hu <gahing@gahingwoo.com>
+ *
+ * This program is free software; you can redistribute it and/or modify it under
+ * the terms of the GNU General Public License version 2 as published by the
+ * Free Software Foundation.
+ *
+ * This program is distributed in the hope that it will be useful, but WITHOUT
+ * ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+ * FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License along with
+ * this program; if not, see <https://www.gnu.org/licenses/>.
+ */
+/* Site rules on top of PatternFly 6 (assets/patternfly/). PatternFly does the
+   components; this file sets the few things a content site needs that a
+   product console does not: document scrolling, lighter headings, key/value
+   rows with hairlines, and print. Keep it short.
+
+   Adapted from gahingwoo.com, which runs the same shell. */
+
+/* Red Hat Display ships as a variable font covering 300..900, but PatternFly
+   only declares 600..800. Declare the full range so headings can be light. */
+@font-face {
+  font-family: "Red Hat Display";
+  font-style: normal;
+  font-weight: 300 900;
+  font-display: fallback;
+  src: url("patternfly/assets/fonts/RedHatDisplay/RedHatDisplayVF.woff2") format("woff2-variations");
+}
+@font-face {
+  font-family: "Red Hat Text";
+  font-style: normal;
+  font-weight: 300 700;
+  font-display: fallback;
+  src: url("patternfly/assets/fonts/RedHatText/RedHatTextVF.woff2") format("woff2-variations");
+}
+
+/* The handful of utility and flex classes the markup uses, so the 184 KB
+   addons file and the 80 KB flex layout stay out of the bundle. */
+.pf-v6-u-text-color-subtle { color: var(--pf-t--global--text--color--subtle); }
+.pf-v6-u-mt-xs { margin-block-start: var(--pf-t--global--spacer--xs); }
+.pf-v6-u-mt-lg { margin-block-start: var(--pf-t--global--spacer--lg); }
+.pf-v6-u-mb-lg { margin-block-end: var(--pf-t--global--spacer--lg); }
+.pf-v6-u-mb-xl { margin-block-end: var(--pf-t--global--spacer--xl); }
+/* Utilities the markup uses, so PatternFly's 184 KB addons file stays out.
+   The flex layout itself is bundled, so there is no stub for it here. */
+.pf-v6-u-font-weight-bold { font-weight: var(--pf-t--global--font--weight--body--bold); }
+.pf-v6-u-font-size-lg { font-size: var(--pf-t--global--font--size--body--lg); }
+
+/* PatternFly's own app shell, which is what Cockpit runs: the page is one
+   viewport tall, the masthead and the sidebar stay put, and only the content
+   area scrolls. Nothing to override; this file only keeps the document from
+   scrolling behind it. */
+html, body { height: 100%; overflow: hidden; }
+
+/* ---- masthead: stacked identity on the left, quiet links on the right ---- */
+.brand { display: block; text-decoration: none; line-height: 1.25; }
+.brand .brand-name { display: block; font-weight: 600; color: var(--pf-t--global--text--color--regular); overflow-wrap: anywhere; }
+.brand .brand-sub { display: block; font-size: var(--pf-t--global--font--size--body--sm); color: var(--pf-t--global--text--color--subtle); }
+.brand:hover { text-decoration: none; }
+/* This church has a lockup rather than a name set in type. Its wordmark is a
+   warm brown that does not carry on the dark theme's ground, so a second file
+   with a white wordmark is swapped in; the mark stays the same in both. */
+/* The lockup is shorter than the row it sits in, so it centres rather than
+   sitting against the top of it, and the link shrinks to the image instead of
+   leaving a run of dead space to its right. */
+/* The mark, then the name set in the site's own heading face. The supplied
+   lockup puts the name in a warm brown that is the only brown anywhere here and
+   sits badly next to the interface's blue; its mark is 96% of the lockup's
+   height while the name is 58%, so at any size that fits the bar the name reads
+   smaller than the navigation beside it. Setting the name as text fixes both,
+   and drops the second image the dark theme needed. */
+.brand { display: flex; align-items: center; gap: var(--pf-t--global--spacer--sm); text-decoration: none; }
+.brand:hover { text-decoration: none; }
+.brand .brand-mark { height: 1.75rem; width: auto; }
+.brand-name {
+  font-family: var(--pf-t--global--font--family--heading);
+  font-size: var(--pf-t--global--font--size--heading--sm);
+  color: var(--pf-t--global--text--color--regular);
+  white-space: nowrap;
+}
+.brand:hover .brand-name { color: var(--pf-t--global--text--color--link--hover); }
+.foot-brand { margin-bottom: var(--pf-t--global--spacer--sm); }
+.brand:hover .brand-name { color: var(--pf-t--global--text--color--link--hover); }
+.pf-v6-c-masthead__content { display: flex; align-items: center; justify-content: flex-end; gap: var(--pf-t--global--spacer--md); flex-wrap: wrap; }
+.pf-v6-c-masthead { position: relative; }
+.theme-toggle .icon-sun { display: none; }
+html.pf-v6-theme-dark .theme-toggle .icon-sun { display: inline-block; }
+html.pf-v6-theme-dark .theme-toggle .icon-moon { display: none; }
+
+/* Width, the Cockpit way: a sidebar of navigation on the left, and the
+   content sheet takes the rest of the screen. Cards, tables and rows stretch
+   with it; runs of prose stop at 789px, the Red Hat Design System's
+   seven-column limit, inside PatternFly's 20 to 100 characters a line. */
+.pf-v6-c-page { --pf-v6-c-page--section--m-limit-width--MaxWidth: none; }
+.pf-v6-c-page__main-section.pf-m-limit-width > .pf-v6-c-page__main-body { width: 100%; }
+/* Jumping to a section animates rather than teleports. Anchors are ordinary
+   links, so this is the platform's own scrolling, switched off for readers
+   who ask for less motion. */
+.pf-v6-c-page__main { scroll-behavior: smooth; }
+@media (prefers-reduced-motion: reduce) { .pf-v6-c-page__main { scroll-behavior: auto; } }
+
+/* A page of records or of a CV is read, not scanned like a dashboard, so its
+   column stops at 58rem. That leaves a card about 864px wide inside, which is
+   the 789px measure for the paragraph plus room for the status at its right.
+   The overview is a dashboard and fills the screen. */
+.doc-page { --pf-v6-c-page--section--m-limit-width--MaxWidth: 76rem; }
+.doc-page .pf-v6-c-page__main-body { margin-inline: auto; }
+
+/* The first section sits 16px below the top of the sheet by default, which
+   crowds the page title against the masthead. Give it room to breathe, and
+   the same at the foot so the last card is not flush with the edge. */
+.pf-v6-c-page__main > .pf-v6-c-page__main-section:first-child { --pf-v6-c-page__main-section--PaddingBlockStart: var(--pf-t--global--spacer--2xl); }
+.pf-v6-c-page__main > .pf-v6-c-page__main-section:last-child { --pf-v6-c-page__main-section--PaddingBlockEnd: var(--pf-t--global--spacer--2xl); }
+/* The rail is sticky inside that padding, so hold it clear of the top edge. */
+@media (min-width: 75rem) { .page-rail { top: var(--pf-t--global--spacer--md); } }
+
+/* The current-section marker is a border on each item, so it jumps from one
+   to the next. Where the rail spies on a scroll container, one marker slides
+   instead: the per-item border is switched off through the component's own
+   variable and this bar takes its colour and width from the same tokens. */
+.pf-v6-c-jump-links__list { position: relative; }
+.rail-marker {
+  position: absolute;
+  inset-inline-start: 0;
+  top: 0;
+  width: var(--pf-t--global--border--width--extra-strong);
+  height: 0;
+  border-radius: var(--pf-t--global--border--radius--small);
+  background: var(--pf-t--global--border--color--brand--default);
+  opacity: 0;
+  transition: transform var(--pf-t--global--motion--duration--sm, 0.2s) var(--pf-t--global--motion--timing-function--default, ease),
+              height var(--pf-t--global--motion--duration--sm, 0.2s) var(--pf-t--global--motion--timing-function--default, ease),
+              opacity var(--pf-t--global--motion--duration--sm, 0.2s) linear;
+}
+.rail-marker.is-on { opacity: 1; }
+.has-rail-marker .pf-v6-c-jump-links__item.pf-m-current > .pf-v6-c-jump-links__link {
+  --pf-v6-c-jump-links__item--m-current__link--before--BorderInlineStartWidth: 0;
+}
+@media (prefers-reduced-motion: reduce) { .rail-marker { transition: none; } }
+
+/* Moving between the three pages is a cross-document view transition, a
+   browser feature: where it is supported the content fades between pages and
+   the masthead and sidebar, named here so the browser matches them across
+   documents, stay where they are. Where it is not, the link is an ordinary
+   navigation. */
+@view-transition { navigation: auto; }
+.pf-v6-c-masthead { view-transition-name: masthead; }
+.pf-v6-c-page__sidebar { view-transition-name: sidebar; }
+.pf-v6-c-page__main { view-transition-name: main; }
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*), ::view-transition-old(*), ::view-transition-new(*) { animation: none !important; }
+}
+
+/* The sidebar lies over the content below xl, so PatternFly's backdrop dims
+   what is behind it. The component sits at the lg layer, above the sidebar's
+   own sm layer, and the content container sits at xs, the same layer the
+   backdrop would fall back to; it goes just under the sidebar instead, which
+   puts it over the content and under the panel. It fades with the panel. */
+.site-backdrop {
+  --pf-v6-c-backdrop--ZIndex: calc(var(--pf-t--global--z-index--sm) - 1);
+  opacity: 0;
+  transition: opacity var(--pf-t--global--motion--duration--fade--default, 0.2s) var(--pf-t--global--motion--timing-function--decelerate, ease);
+}
+.site-backdrop.is-on { opacity: 1; }
+/* A drag on the dimmed area does nothing rather than scrolling the page
+   behind the panel. Taking the document out of the scroll entirely would
+   strand the sticky masthead, which needs a scrollable document to stick to. */
+.site-backdrop { touch-action: none; overscroll-behavior: contain; }
+@media (min-width: 75rem) { .site-backdrop { display: none !important; } }
+@media (prefers-reduced-motion: reduce) { .site-backdrop { transition: none; } }
+
+/* The hamburger morph runs at the icon default, which reads as a flick on a
+   phone where the panel beside it takes a slide-in to arrive. Give it the
+   slide's duration so the two finish together. */
+@media (max-width: 74.99rem) {
+  .pf-v6-c-button.pf-m-hamburger { --pf-v6-c-button--hamburger-icon--TransitionDuration: var(--pf-t--global--motion--duration--slide-in--default); }
+}
+
+/* Below xl the page scrolls as a document rather than inside the shell. The
+   shell keeps the masthead and sidebar in place on a large screen, but on a
+   phone it costs the browser's own gestures, pull to refresh among them,
+   because those need the document itself to be the thing that scrolls. The
+   masthead stays put by being sticky, which leaves those gestures alone. */
+@media (max-width: 74.99rem) {
+  html, body { height: auto; min-height: 100%; overflow: visible; }
+  html { scroll-behavior: smooth; }
+  .pf-v6-c-page { height: auto; min-height: 100dvh; }
+  .pf-v6-c-page__main-container, .pf-v6-c-page__main { height: auto; max-height: none; overflow: visible; }
+  .pf-v6-c-masthead { position: sticky; top: 0; z-index: var(--pf-t--global--z-index--md); }
+  /* With the document scrolling, the panel would otherwise sit at the top of
+     it and be gone once the reader has scrolled; it is pinned to the viewport
+     under the masthead instead, which is where a drawer belongs. */
+  .pf-v6-c-page__sidebar { position: fixed; inset-block-start: var(--masthead-h, 4.5rem); inset-block-end: 0; height: auto; }
+}
+@media (max-width: 74.99rem) and (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+
+/* A link that leaves the site says so before it is clicked. The glyph is
+   PatternFly's external-link icon, drawn through a mask so it takes the
+   link's own colour in either theme. It also serves as the warning that the
+   accessibility guidance asks for wherever a link opens a new tab.
+   On a nav link and on a button the glyph hangs off the label, never off the
+   element itself: PatternFly draws the button's border with the button's own
+   ::after, and the sidebar needs the marker pushed to the end of the row. Both
+   exclusions live in this selector rather than in a later "content: none",
+   because :where() keeps them from raising specificity and a rule that has to
+   out-specify this one to switch the glyph off is a rule that will quietly
+   stop working the next time this selector grows. */
+a[href^="http"]:not(:where([href^="https://www.mabc.org.nz"], .pf-v6-c-button, .pf-v6-c-nav__link))::after,
+.pf-v6-c-nav__link[href^="http"]:not([href^="https://www.mabc.org.nz"]) .pf-v6-c-nav__link-text::after,
+a.pf-v6-c-button[href^="http"]:not([href^="https://www.mabc.org.nz"]) .pf-v6-c-button__text::after {
+  content: "";
+  display: inline-block;
+  width: 0.72em;
+  height: 0.72em;
+  margin-inline-start: 0.3em;
+  vertical-align: -0.02em;
+  background-color: currentColor;
+  opacity: 0.75;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M30 21v7.5c0 .827-.673 1.5-1.5 1.5h-25c-.827 0-1.5-.673-1.5-1.5v-25C2 2.673 2.673 2 3.5 2H11a1 1 0 1 1 0 2H4v24h24v-7a1 1 0 1 1 2 0ZM28.5 2H18a1 1 0 1 0 0 2h8.586L13.293 17.293a.999.999 0 1 0 1.414 1.414L28 5.414V14a1 1 0 1 0 2 0V3.5c0-.827-.673-1.5-1.5-1.5Z'/%3E%3C/svg%3E") no-repeat center / contain;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M30 21v7.5c0 .827-.673 1.5-1.5 1.5h-25c-.827 0-1.5-.673-1.5-1.5v-25C2 2.673 2.673 2 3.5 2H11a1 1 0 1 1 0 2H4v24h24v-7a1 1 0 1 1 2 0ZM28.5 2H18a1 1 0 1 0 0 2h8.586L13.293 17.293a.999.999 0 1 0 1.414 1.414L28 5.414V14a1 1 0 1 0 2 0V3.5c0-.827-.673-1.5-1.5-1.5Z'/%3E%3C/svg%3E") no-repeat center / contain;
+}
+/* A mailto link leaves the page too, but for a compose window rather than a
+   website, so it carries an envelope rather than the arrow: the same warning,
+   the truthful symbol. */
+a[href^="mailto:"]:not(:where(.pf-v6-c-nav__link))::after,
+.pf-v6-c-nav__link[href^="mailto:"] .pf-v6-c-nav__link-text::after {
+  content: "";
+  display: inline-block;
+  width: 0.72em;
+  height: 0.72em;
+  margin-inline-start: 0.3em;
+  vertical-align: -0.02em;
+  background-color: currentColor;
+  opacity: 0.75;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M29.5 5h-27C1.673 5 1 5.673 1 6.5v19c0 .827.673 1.5 1.5 1.5h27c.827 0 1.5-.673 1.5-1.5v-19c0-.827-.673-1.5-1.5-1.5ZM3 8.238 10.762 16 3 23.762V8.238Zm16.382 7.143h-.001v.001l-3.38 3.38-3.38-3.38v-.001h-.001L4.238 7h23.524l-8.38 8.381ZM12 17.238l3.027 3.027c.26.26.605.403.973.403s.713-.143.973-.403L20 17.238 27.762 25H4.238L12 17.238ZM21.238 16 29 8.238v15.524L21.238 16Z'/%3E%3C/svg%3E") no-repeat center / contain;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M29.5 5h-27C1.673 5 1 5.673 1 6.5v19c0 .827.673 1.5 1.5 1.5h27c.827 0 1.5-.673 1.5-1.5v-19c0-.827-.673-1.5-1.5-1.5ZM3 8.238 10.762 16 3 23.762V8.238Zm16.382 7.143h-.001v.001l-3.38 3.38-3.38-3.38v-.001h-.001L4.238 7h23.524l-8.38 8.381ZM12 17.238l3.027 3.027c.26.26.605.403.973.403s.713-.143.973-.403L20 17.238 27.762 25H4.238L12 17.238ZM21.238 16 29 8.238v15.524L21.238 16Z'/%3E%3C/svg%3E") no-repeat center / contain;
+}
+
+/* In the sidebar the markers line up down the right edge rather than trailing
+   labels of different lengths. The label takes the row and the marker is
+   pushed to its end, which also keeps it on the same line: on the link itself
+   it would become a row of its own above the label.
+   Not on the masthead's own controls, nor in print, where the address is
+   already spelled out and the glyph would be noise. */
+.pf-v6-c-nav__link-text { display: flex; align-items: center; width: 100%; }
+.pf-v6-c-nav__link-text::after { margin-inline-start: auto !important; }
+
+/* Not on the masthead's own controls, nor in print, where the address is
+   already spelled out and the glyph would be noise. */
+.pf-v6-c-masthead a::after { content: none; }
+/* The photograph beside the opening words, as patternfly.org sets its
+   illustration: a flex item that stretches to the height of the text. */
+.home-photo {
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-height: 16rem;
+  object-fit: cover;
+  object-position: center 62%;
+  border-radius: var(--pf-t--global--border--radius--medium);
+}
+
+/* ---- the home page's opening ----
+   PatternFly's hero draws the photograph and a gradient from its own variables
+   and swaps both for the dark theme on its own; only the values are set here.
+   The gradient goes in front of the picture rather than behind it, because the
+   type sits on top — the component layers its own gradient underneath, which
+   is meant for artwork that is already dark enough.
+
+   A url() inside a custom property resolves against the stylesheet the var()
+   is substituted into, which is PatternFly's file, so the path is absolute. */
+/* The photograph itself comes in as --home-hero--image, set on the element in
+   content/index.html, so that the build can hash the file into its URL the way
+   it does for every other asset. Only the gradients over it live here. */
+.pf-v6-c-hero.home-hero {
+  --pf-v6-c-hero--BackgroundImage--light:
+    linear-gradient(105deg, rgb(3 33 66 / 0.94) 0%, rgb(3 33 66 / 0.78) 46%, rgb(3 33 66 / 0.22) 100%),
+    var(--home-hero--image);
+  --pf-v6-c-hero--BackgroundImage--dark:
+    linear-gradient(105deg, rgb(3 33 66 / 0.96) 0%, rgb(3 33 66 / 0.86) 46%, rgb(3 33 66 / 0.40) 100%),
+    var(--home-hero--image);
+  --pf-v6-c-hero--BackgroundSize: cover;
+  --pf-v6-c-hero--BackgroundPosition: center 62%;
+  --pf-v6-c-hero--PaddingBlockStart: var(--pf-t--global--spacer--3xl);
+  --pf-v6-c-hero--PaddingBlockEnd: var(--pf-t--global--spacer--3xl);
+  --pf-v6-c-hero--PaddingInlineStart: var(--pf-t--global--spacer--2xl);
+  --pf-v6-c-hero--PaddingInlineEnd: var(--pf-t--global--spacer--2xl);
+  /* PatternFly sizes this as width: min(--Width, --MaxWidth), where MaxWidth
+     is the 80% that keeps it inside a narrow screen. Set --Width, not that,
+     or the body is pinned at 40rem and overflows a phone. */
+  --pf-v6-c-hero__body--Width: 40rem;
+  color: #fff;
+}
+.home-hero .pf-v6-c-title, .home-hero .pf-v6-c-content--p { color: #fff; }
+/* PatternFly holds the hero body to 80% so it clears the photograph behind it,
+   and sizes 4xl for a desktop measure. On a phone there is no room to give
+   away and the heading would run to five lines, so the body takes the width
+   and the title drops two steps through the component's own variable. */
+@media (max-width: 40rem) {
+  .pf-v6-c-hero.home-hero {
+    --pf-v6-c-hero__body--MaxWidth: 100%;
+    --pf-v6-c-hero--PaddingInlineStart: var(--pf-t--global--spacer--lg);
+    --pf-v6-c-hero--PaddingInlineEnd: var(--pf-t--global--spacer--lg);
+  }
+  .home-hero .pf-v6-c-title.pf-m-4xl {
+    --pf-v6-c-title--m-4xl--FontSize: var(--pf-t--global--font--size--heading--md);
+  }
+}
+/* An outlined button on a photograph needs a border the theme's own colour
+   will not give it. */
+.home-hero .pf-v6-c-button.pf-m-secondary {
+  --pf-v6-c-button--m-secondary--BorderColor: rgb(255 255 255 / 0.85);
+  --pf-v6-c-button--m-secondary--Color: #fff;
+  --pf-v6-c-button--m-secondary--hover--BorderColor: #fff;
+  --pf-v6-c-button--m-secondary--hover--Color: #fff;
+}
+
+/* The map of where the church is. An iframe has no intrinsic ratio, so one is
+   stated. The frame is Google's keyless embed, and it is built only once the
+   reader scrolls to it (see site.js), so nothing is requested from Google
+   until then. The directions link above it hands off to whichever maps app
+   the reader already uses. */
+.map-frame {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border: 1px solid var(--pf-t--global--border--color--default);
+  border-radius: var(--pf-t--global--border--radius--medium);
+  background: var(--pf-t--global--background--color--secondary--default);
+  overflow: hidden;
+}
+.map-frame iframe { display: block; width: 100%; height: 100%; border: 0; }
+
+@media print { a::after { content: none !important; } }
+
+/* The masthead stays on one row at every width. PatternFly stacks it below xl,
+   which on a phone spends a second row on a lone hamburger with the identity
+   above it; patternfly.org keeps its own masthead to a single compact row and
+   this follows it. One row needs about 400px for all four controls, so under
+   PF's sm breakpoint the Give button steps aside; the sidebar carries Give in
+   its own navigation, which is where a thumb is already going.
+
+   Nothing here enlarges a tap target. That was tried and reverted: 56px rows
+   at 16px are what Apple and Material ask for, but patternfly.org itself runs
+   37px rows at 14px on a phone, and the enlarged version stopped looking like
+   PatternFly. The design system's density is the design, so it is left alone. */
+@media (max-width: 35.99rem) {
+  .masthead-give { display: none; }
+}
+
+/* ---- on this page ----
+   The pattern patternfly.org uses for its own documentation: the site's
+   navigation on the left, the sections of this page on the right. From xl the
+   rail is a plain sticky list beside the content; below that the grid is one
+   column and PatternFly's expandable variant turns the same list into a
+   toggle above the content. */
+.page-rail { margin-bottom: var(--pf-t--global--spacer--md); }
+.page-rail .pf-v6-c-jump-links__label { font-family: var(--pf-t--global--font--family--heading); color: var(--pf-t--global--text--color--subtle); }
+.page-rail .pf-v6-c-jump-links__toggle .pf-v6-c-button { padding-inline-start: 0; }
+@media (max-width: 74.99rem) {
+  .page-rail .pf-v6-c-jump-links:not(.pf-m-expanded) .pf-v6-c-jump-links__list { display: none; }
+}
+@media (min-width: 75rem) {
+  .with-rail .pf-v6-c-page__main-body {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 15rem;
+    column-gap: var(--pf-t--global--spacer--xl);
+    align-items: start;
+  }
+  .page-content { grid-column: 1; grid-row: 1; min-width: 0; }
+  .page-rail {
+    grid-column: 2;
+    grid-row: 1;
+    position: sticky;
+    top: 0;
+    margin-bottom: 0;
+    max-height: calc(100dvh - var(--pf-t--global--spacer--3xl));
+    overflow-y: auto;
+  }
+}
+.card-text, .kv .pf-v6-c-description-list__description { max-width: 789px; }
+
+/* ---- page head: title, inline subtitle, one action ---- */
+.page-head { display: flex; align-items: center; justify-content: space-between; gap: var(--pf-t--global--spacer--md); flex-wrap: wrap; margin-bottom: var(--pf-t--global--spacer--xl); }
+.page-title { font-family: var(--pf-t--global--font--family--heading); font-weight: 400; font-size: 1.75rem; line-height: 1.25; margin: 0; }
+.page-title .subtitle { font-family: var(--pf-t--global--font--family--body); font-size: 1.125rem; font-weight: 400; color: var(--pf-t--global--text--color--subtle); margin-inline-start: var(--pf-t--global--spacer--md); }
+@media (max-width: 640px) { .page-title .subtitle { display: block; margin-inline-start: 0; margin-top: 2px; } }
+
+/* ---- cards ---- */
+.pf-v6-l-gallery { --pf-v6-l-gallery--GridTemplateColumns--min: min(100%, 25rem); }
+/* Overview cards: Cockpit's gallery, as many columns as fit at 26rem each. */
+.home-cards { --pf-v6-l-gallery--GridTemplateColumns--min: min(100%, 24rem); }
+.pf-v6-c-card { --pf-v6-c-card--first-child--PaddingBlockStart: var(--pf-t--global--spacer--xl); --pf-v6-c-card--child--PaddingInlineStart: var(--pf-t--global--spacer--xl); --pf-v6-c-card--child--PaddingInlineEnd: var(--pf-t--global--spacer--xl); --pf-v6-c-card--last-child--PaddingBlockEnd: var(--pf-t--global--spacer--xl); }
+.pf-v6-c-card__title-text { font-weight: 400; font-size: 1.375rem; line-height: 1.3; }
+.pf-v6-c-card__body { font-size: 1rem; line-height: 1.5; }
+.pf-v6-c-card__footer { font-size: 1rem; }
+.card-text p { margin: 0 0 var(--pf-t--global--spacer--md) 0; }
+.card-text p:last-child { margin-bottom: 0; }
+
+/* Key/value rows with hairlines, as Cockpit lays out system information. */
+.kv { --pf-v6-c-description-list--RowGap: 0; --pf-v6-c-description-list--m-horizontal__term--width: minmax(0, 11rem); }
+.kv .pf-v6-c-description-list__group { padding-block: 0.625rem; border-bottom: 1px solid var(--pf-t--global--border--color--default); }
+.kv .pf-v6-c-description-list__group:first-child { padding-top: 0; }
+.kv .pf-v6-c-description-list__group:last-child { border-bottom: 0; padding-bottom: 0; }
+.kv .pf-v6-c-description-list__term .pf-v6-c-description-list__text { font-weight: 400; overflow-wrap: normal; }
+.kv .pf-v6-c-description-list__text { font-size: 1rem; line-height: 1.5; overflow-wrap: anywhere; }
+/* The quiet second line under an entry: when it meets, who to ask. It belongs
+   to the caption, not to whatever is holding it, so it is not scoped to the
+   description lists it started in — an accordion panel needs it too. */
+.meta { display: block; color: var(--pf-t--global--text--color--subtle); font-size: var(--pf-t--global--font--size--body--default); margin-top: 2px; }
+
+/* ---- section heading on long pages ---- */
+.section-title { font-family: var(--pf-t--global--font--family--heading); font-weight: 400; font-size: 1.375rem; margin: 0 0 var(--pf-t--global--spacer--md) 0; }
+.section-title .count { color: var(--pf-t--global--text--color--subtle); font-size: 1rem; margin-inline-start: var(--pf-t--global--spacer--sm); }
+
+/* ---- sidebar ----
+   PatternFly's page sidebar: always open from xl, slid in by the hamburger
+   below that. The section list of the current page lives here, as Cockpit
+   keeps its System and Tools groups. */
+.pf-v6-c-page__sidebar-body { padding-block-start: var(--pf-t--global--spacer--md); }
+.pf-v6-c-nav__section-title { font-family: var(--pf-t--global--font--family--heading); }
+@media print { .pf-v6-c-page__sidebar, .page-rail { display: none !important; } }
+
+/* A photograph on a card sits in the card's header, which is where PatternFly
+   puts one. It bleeds to the card's edges: the header's own inline padding is
+   taken back, so the picture is the top of the card rather than an image
+   floating inside it. */
+.card-photo {
+  --pf-v6-c-card--child--PaddingInlineStart: 0;
+  --pf-v6-c-card--child--PaddingInlineEnd: 0;
+  --pf-v6-c-card--first-child--PaddingBlockStart: 0;
+  overflow: hidden;
+  border-start-start-radius: inherit;
+  border-start-end-radius: inherit;
+}
+.card-photo img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 16 / 7;
+  object-fit: cover;
+}
+
+/* The space between one group of content and the next has its own token. The
+   spacers guidance is explicit that a layout gap takes the semantic token
+   rather than a global spacer. */
+.section { margin-top: var(--pf-t--global--spacer--gap--group-to-group--vertical--default); }
+
+/* ---- footer ----
+   The link columns and the copyright row, as patternfly.org lays them out: a
+   grid inside the footer's own page section, and the copyright on a section of
+   its own below it. */
+.foot-title {
+  font-family: var(--pf-t--global--font--family--heading);
+  font-weight: 500;
+  margin: 0 0 var(--pf-t--global--spacer--sm) 0;
+}
+/* The footer does not colour its links. PatternFly's default link decoration
+   is a dashed underline, which reads as a quiet dotted rule on the footer's
+   own text colour and as noise on brand blue. The reference site makes the
+   same choice. */
+.site-footer a, .foot-legal a { color: inherit; }
+.site-footer nav { display: flex; flex-direction: column; gap: var(--pf-t--global--spacer--xs); }
+/* A footer link is navigation, like the sidebar's, so it does not carry the
+   leaves-the-site glyph that a citation in the content does. */
+.site-footer a::after, .foot-legal a::after { content: none !important; }
+/* The footer sits on the secondary surface, so it reads as the end of the page
+   rather than more content. */
+.site-footer, .foot-legal { background: var(--pf-t--global--background--color--secondary--default); }
+.foot-about { color: var(--pf-t--global--text--color--subtle); margin: 0 0 var(--pf-t--global--spacer--md) 0; }
+.site-footer address { font-style: normal; line-height: 1.9; color: var(--pf-t--global--text--color--subtle); }
+.foot-legal .pf-v6-c-page__main-body {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--pf-t--global--spacer--xs) var(--pf-t--global--spacer--lg);
+  padding-block-start: var(--pf-t--global--spacer--md);
+  border-block-start: 1px solid var(--pf-t--global--border--color--default);
+  font-size: var(--pf-t--global--font--size--body--sm);
+  color: var(--pf-t--global--text--color--subtle);
+}
+
+
+/* Back to top: PatternFly positions this inside a scrolling container; the
+   page scrolls as a document, so it is fixed to the viewport instead, at the
+   normal button size rather than the component's compact one. */
+.pf-v6-c-back-to-top {
+  position: fixed;
+  inset-inline-end: var(--pf-t--global--spacer--lg);
+  inset-block-end: var(--pf-t--global--spacer--xl);
+  /* The page's main container sits at z-index xs; the button must be above it. */
+  z-index: var(--pf-t--global--z-index--lg);
+  --pf-v6-c-back-to-top--c-button--FontSize: var(--pf-t--global--font--size--body--default);
+  --pf-v6-c-back-to-top--c-button--PaddingBlockStart: var(--pf-t--global--spacer--sm);
+  --pf-v6-c-back-to-top--c-button--PaddingBlockEnd: var(--pf-t--global--spacer--sm);
+  --pf-v6-c-back-to-top--c-button--PaddingInlineStart: var(--pf-t--global--spacer--md);
+  --pf-v6-c-back-to-top--c-button--PaddingInlineEnd: var(--pf-t--global--spacer--md);
+  --pf-v6-c-back-to-top--c-button--BoxShadow: var(--pf-t--global--box-shadow--md);
+}
+
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+
+@media print {
+  /* The app shell is one viewport tall with its own scroller; printing needs
+     the whole document to flow, so undo the shell here. */
+  html, body { background: #fff !important; height: auto !important; overflow: visible !important; }
+  .pf-v6-c-masthead, .theme-toggle, .no-print, .pf-v6-c-back-to-top, .pf-v6-c-skip-to-content { display: none !important; }
+  .pf-v6-c-page, .pf-v6-c-page__main-container, .pf-v6-c-page__main { display: block; height: auto; min-height: 0; background: #fff; }
+  .pf-v6-c-page__main-section { background: #fff; padding: 0; border-radius: 0; }
+}
+
+/* Our team. Gallery, Flex and Avatar are PatternFly; the caption just runs a
+   step smaller in a cell this narrow. */
+.people .meta { font-size: var(--pf-t--global--font--size--body--sm); }
+
+/* An email address has no break opportunity inside it, so one long enough
+   makes the whole page wider than a narrow phone rather than wrapping. Let
+   links break mid-word as a last resort; ordinary link text still breaks at
+   its spaces first, so this only shows up where it is needed. */
+.pf-v6-c-card__body a, .pf-v6-c-card__footer a, .site-footer a { overflow-wrap: anywhere; }
+
+/* ---- about this page ----
+   PatternFly's about modal, opened from the footer. The trigger is a button
+   because it acts on this page rather than going anywhere, so it is dressed to
+   sit among the links beside it. The box is held in the middle of the backdrop
+   by Bullseye, PatternFly's own centring layout, and kept off the edges of a
+   phone. */
+.link-button {
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  text-decoration: underline;
+  text-decoration-style: dotted;
+  text-underline-offset: 0.2em;
+}
+.link-button:hover { text-decoration-style: solid; }
+.about-backdrop .pf-v6-c-about-modal-box {
+  /* The pattern PatternFly leaves the right-hand column for. It is the design
+     system's own artwork, shipped in the package. It is a grey at low opacity
+     rather than a fixed colour, so one file serves both themes. The component
+     itself sets no radius, so it takes the same one the cards and the content
+     sheet use. */
+  --pf-v6-c-about-modal-box--BackgroundImage: url("/assets/patternfly/assets/images/pf-background.svg");
+  --pf-v6-c-about-modal-box--BackgroundPosition: bottom right;
+  /* PatternFly fixes the box at 47.625rem tall from lg, which is sized for a
+     product's about box. This one holds ten rows, so it takes the height its
+     content asks for and the viewport caps it. */
+  --pf-v6-c-about-modal-box--Height: auto;
+  --pf-v6-c-about-modal-box--lg--Height: auto;
+  border-radius: var(--pf-t--global--border--radius--large);
+  width: min(46rem, calc(100vw - 2 * var(--pf-t--global--spacer--lg)));
+  max-height: calc(100dvh - 2 * var(--pf-t--global--spacer--lg));
+  overflow-y: auto;
+}
+/* Below sm the box is one column, so the pattern would sit under the text. */
+@media (max-width: 35.99rem) {
+  .about-backdrop .pf-v6-c-about-modal-box { --pf-v6-c-about-modal-box--BackgroundImage: none; }
+}
+.about-backdrop .pf-v6-c-about-modal-box__brand-image { height: 2.5rem; width: auto; }

@@ -1,0 +1,39 @@
+name: Build and deploy
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+      # The pages are generated, so they are rebuilt here rather than trusted
+      # from the commit: a fragment edited without running the build locally
+      # still ships correctly.
+      - run: python3 tools/build.py
+      # A link that points nowhere is the one bug a static site can still ship,
+      # so the build does not go out until every one of them resolves.
+      - run: python3 tools/check_links.py
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: .
+      - id: deploy
+        uses: actions/deploy-pages@v4
