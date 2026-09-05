@@ -520,8 +520,11 @@ def build():
         + "\n".join("  <url><loc>%s%s</loc><lastmod>%s</lastmod></url>"
                     % (SITE, href, today) for href, _ in written)
         + "\n</urlset>\n", encoding="utf-8")
+    # Crawlers are welcome everywhere, preview included: the pages should be
+    # readable by anything that comes looking. Keeping them out of search
+    # results while the content is unconfirmed is the noindex tag's job, and
+    # that only works if the crawler is allowed in to read it.
     (ROOT / "robots.txt").write_text(
-        "User-agent: *\nDisallow: /\n" if IS_PREVIEW else
         "User-agent: *\nAllow: /\n\nSitemap: %s/sitemap.xml\n" % SITE,
         encoding="utf-8")
 
