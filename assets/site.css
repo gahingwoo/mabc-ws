@@ -561,3 +561,14 @@ a[href^="mailto:"]:not(:where(.pf-v6-c-nav__link))::after,
   .about-backdrop .pf-v6-c-about-modal-box { --pf-v6-c-about-modal-box--BackgroundImage: none; }
 }
 .about-backdrop .pf-v6-c-about-modal-box__brand-image { height: 2.5rem; width: auto; }
+
+/* The redirect stubs standing in for the old Wix paths. The browser follows
+   the meta refresh immediately, so this is only seen on a slow connection or
+   when the target is slow to answer: a spinner centred by Bullseye, rather
+   than a bare line of unstyled text. */
+.redirect {
+  min-height: 100dvh;
+  text-align: center;
+  background: var(--pf-t--global--background--color--primary--default);
+}
+.redirect .pf-v6-c-spinner { margin-bottom: var(--pf-t--global--spacer--lg); }

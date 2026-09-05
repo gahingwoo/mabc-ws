@@ -28,7 +28,7 @@ COMPONENTS="Page/page Masthead/masthead Button/button Card/card Backdrop/backdro
             DescriptionList/description-list Table/table Table/table-grid \
             Nav/nav BackToTop/back-to-top \
             SkipToContent/skip-to-content JumpLinks/jump-links \
-            Brand/brand Content/content Title/title Hero/hero Accordion/accordion \
+            Brand/brand Content/content Title/title Hero/hero Accordion/accordion Spinner/spinner \
             AboutModalBox/about-modal-box \
             Avatar/avatar"
 LAYOUTS="Gallery/gallery Stack/stack Grid/grid Flex/flex Bullseye/bullseye"

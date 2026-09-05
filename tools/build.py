@@ -38,7 +38,20 @@ from datetime import date
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 CONTENT = ROOT / "content"
 
-SITE = "https://www.mabc.org.nz"
+# Where this build will actually be served from. GitHub writes CNAME when the
+# custom domain is set in the repository's Pages settings, so it is the one
+# place that already knows: while the rewrite sits on new.mabc.org.nz the
+# canonical, og: and sitemap URLs point there, and they follow by themselves
+# the day it moves to www. A build with no CNAME assumes the real address.
+LIVE_DOMAIN = "www.mabc.org.nz"
+_cname = ROOT / "CNAME"
+DOMAIN = (_cname.read_text(encoding="utf-8").strip()
+          if _cname.is_file() else LIVE_DOMAIN)
+SITE = "https://" + DOMAIN
+# Anywhere but the real address is a preview: it holds content the church has
+# not signed off yet, so it asks not to be indexed and would otherwise compete
+# with the live site for the same words.
+IS_PREVIEW = DOMAIN != LIVE_DOMAIN
 NAME = "Mt Albert Baptist"
 ADDRESS = "732 New North Road, Mt Albert, Auckland"
 PHONE = "09 849 2849"
@@ -204,6 +217,7 @@ SHELL = """<!DOCTYPE html>
 <title>%(title)s</title>
 <meta name="description" content="%(description)s">
 <link rel="canonical" href="%(canonical)s">
+%(noindex)s
 <link rel="icon" href="/assets/brand/mark.png" type="image/png" sizes="208x208">
 <link rel="apple-touch-icon" href="/assets/brand/apple-touch-icon.png">
 <meta property="og:type" content="website">
@@ -375,12 +389,25 @@ STUB = """<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Moved</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Redirecting</title>
 <link rel="canonical" href="%(site)s%(to)s">
 <meta http-equiv="refresh" content="0;url=%(to)s">
 <meta name="robots" content="noindex">
+<link rel="icon" href="/assets/brand/mark.png" type="image/png" sizes="208x208">
+<link rel="stylesheet" href="/assets/patternfly/patternfly-site.css">
+<link rel="stylesheet" href="/assets/site.css">
 </head>
-<body><p>This page has moved to <a href="%(to)s">%(to)s</a>.</p></body>
+<body>
+<div class="pf-v6-l-bullseye redirect">
+  <div>
+    <svg class="pf-v6-c-spinner pf-m-xl" role="progressbar" viewBox="0 0 100 100" aria-label="Redirecting">
+      <circle class="pf-v6-c-spinner__path" cx="50" cy="50" r="45" fill="none"></circle>
+    </svg>
+    <p class="pf-v6-c-content--p">Redirecting to <a href="%(to)s">%(to)s</a></p>
+  </div>
+</div>
+</body>
 </html>
 """
 
@@ -445,6 +472,7 @@ def build():
         "site_css": "/assets/site.css",
         "site_js": "/assets/site.js",
         "aboutrows": aboutrows,
+        "noindex": '<meta name="robots" content="noindex">\n' if IS_PREVIEW else "",
     }
 
     written = []
@@ -483,7 +511,7 @@ def build():
     for old, to in REDIRECTS.items():
         target = ROOT / old / "index.html"
         target.parent.mkdir(parents=True, exist_ok=True)
-        target.write_text(STUB % {"site": SITE, "to": to}, encoding="utf-8")
+        target.write_text(ASSET.sub(stamp, STUB % {"site": SITE, "to": to}), encoding="utf-8")
 
     today = date.today().isoformat()
     (ROOT / "sitemap.xml").write_text(
@@ -493,7 +521,9 @@ def build():
                     % (SITE, href, today) for href, _ in written)
         + "\n</urlset>\n", encoding="utf-8")
     (ROOT / "robots.txt").write_text(
-        "User-agent: *\nAllow: /\n\nSitemap: %s/sitemap.xml\n" % SITE, encoding="utf-8")
+        "User-agent: *\nDisallow: /\n" if IS_PREVIEW else
+        "User-agent: *\nAllow: /\n\nSitemap: %s/sitemap.xml\n" % SITE,
+        encoding="utf-8")
 
     for href, path in written:
         print("%-16s %s" % (href, path))
