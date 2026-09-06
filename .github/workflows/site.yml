@@ -3,6 +3,11 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+  # The sermon list is only as current as the last build, and the church
+  # streams every Sunday. Rebuilt each morning so it keeps up without anyone
+  # pushing. 18:00 UTC is early morning in Auckland.
+  schedule:
+    - cron: "0 18 * * *"
 
 permissions:
   contents: read
@@ -27,6 +32,10 @@ jobs:
       # The pages are generated, so they are rebuilt here rather than trusted
       # from the commit: a fragment edited without running the build locally
       # still ships correctly.
+      # Reads the church's YouTube feed into assets/sermons.json. It never
+      # fails the build: if YouTube cannot be reached it leaves the committed
+      # file alone and the site ships last week's list.
+      - run: python3 tools/fetch_sermons.py
       - run: python3 tools/build.py
       # A link that points nowhere is the one bug a static site can still ship,
       # so the build does not go out until every one of them resolves.

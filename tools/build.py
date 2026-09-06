@@ -187,6 +187,81 @@ def search_records(slug, href, heading, fragment):
     return out
 
 
+def render_sermons():
+    """The last few Sunday services, read from assets/sermons.json, which
+    tools/fetch_sermons.py refreshes from the church's YouTube feed. Returns
+    "" when the file is missing or empty, and the page falls back to the plain
+    link it had before: nothing here is allowed to break a build."""
+    path = ROOT / "assets/sermons.json"
+    if not path.is_file():
+        return ""
+    try:
+        items = json.loads(path.read_text(encoding="utf-8"))
+    except ValueError:
+        return ""
+    rows = []
+    for it in items[:6]:
+        try:
+            when = date.fromisoformat(it["d"])
+        except (KeyError, ValueError):
+            continue
+        # "Sunday 6 September" reads as a date to a person; the year is only
+        # spelled out once it is not the current one.
+        label = when.strftime("%A %-d %B")
+        if when.year != date.today().year:
+            label += when.strftime(" %Y")
+        topic = html.escape(it.get("s") or "")
+        rows.append(
+            '        <div class="pf-v6-c-description-list__group">'
+            '<dt class="pf-v6-c-description-list__term">'
+            '<span class="pf-v6-c-description-list__text">%s</span></dt>'
+            '<dd class="pf-v6-c-description-list__description">'
+            '<div class="pf-v6-c-description-list__text">'
+            '<a href="https://www.youtube.com/watch?v=%s">%s</a>'
+            '<span class="meta">%s</span></div></dd></div>'
+            % (label, html.escape(it.get("v", "")),
+               topic or "Watch the service", html.escape(it.get("t", ""))))
+    if not rows:
+        return ""
+    return ('<div class="pf-v6-u-mt-lg"><dl class="pf-v6-c-description-list '
+            'pf-m-horizontal-on-sm kv">\n' + "\n".join(rows) + "\n</dl></div>")
+
+
+def render_last_service():
+    """One line for the home page: what was on last Sunday. Both services of a
+    Sunday share a topic, so they are named together rather than listed twice."""
+    path = ROOT / "assets/sermons.json"
+    if not path.is_file():
+        return ""
+    try:
+        items = json.loads(path.read_text(encoding="utf-8"))
+    except ValueError:
+        return ""
+    if not items:
+        return ""
+    newest = items[0]["d"]
+    same = [i for i in items if i["d"] == newest]
+    try:
+        when = date.fromisoformat(newest)
+    except ValueError:
+        return ""
+    times = " and ".join(dict.fromkeys(i["t"] for i in reversed(same)))
+    topic = next((i.get("s") for i in same if i.get("s")), "")
+    label = when.strftime("%-d %B")
+    if when.year != date.today().year:
+        label += when.strftime(" %Y")
+    return ('    <div class="pf-v6-c-description-list__group">'
+            '<dt class="pf-v6-c-description-list__term">'
+            '<span class="pf-v6-c-description-list__text">Last Sunday</span></dt>'
+            '<dd class="pf-v6-c-description-list__description">'
+            '<div class="pf-v6-c-description-list__text">'
+            '<a href="https://www.youtube.com/watch?v=%s">%s</a>'
+            '<span class="meta">%s, %s</span></div></dd></div>\n'
+            % (html.escape(same[0].get("v", "")),
+               html.escape(topic) if topic else "Watch the service",
+               html.escape(label), html.escape(times)))
+
+
 def render_nav(current):
     out = []
     for title, items in NAV:
@@ -529,6 +604,8 @@ def build():
         pf_version = "PatternFly " + first.rsplit(" ", 1)[-1]
 
     aboutrows = about_rows(pf_version)
+    sermons = render_sermons()
+    last_service = render_last_service()
 
     assets = {
         "pf_css": "/assets/patternfly/patternfly-site.css",
@@ -556,6 +633,10 @@ def build():
         if not frag.is_file():
             sys.exit("missing %s" % frag)
         fragment = frag.read_text(encoding="utf-8").rstrip()
+        # A fragment asks for the generated list by name, so the builder
+        # does not need to know which card on which page it belongs in.
+        fragment = fragment.replace("{{sermons}}", sermons)
+        fragment = fragment.replace("{{last-service}}", last_service)
         rail = cards(fragment)
 
         href = "/" + (directory + "/" if directory else "")
