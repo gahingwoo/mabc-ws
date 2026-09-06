@@ -30,7 +30,7 @@ COMPONENTS="Page/page Masthead/masthead Button/button Card/card Backdrop/backdro
             SkipToContent/skip-to-content JumpLinks/jump-links \
             Brand/brand Content/content Title/title Hero/hero Accordion/accordion Spinner/spinner \
             InputGroup/input-group TextInputGroup/text-input-group Menu/menu \
-            AboutModalBox/about-modal-box \
+            AboutModalBox/about-modal-box ModalBox/modal-box \
             Avatar/avatar"
 LAYOUTS="Gallery/gallery Stack/stack Grid/grid Flex/flex Bullseye/bullseye"
 

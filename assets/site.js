@@ -414,29 +414,19 @@
     openFromHash();
   }
 
-  // About this page. PatternFly's about modal, opened from the footer. The
-  // accessibility guidance for it asks for four things beyond showing the box:
-  // focus moves into the dialog, Tab stays inside it, Escape closes it, and
-  // whatever opened it gets focus back.
-  var about = document.getElementById('about-page');
-  var aboutOpen = document.getElementById('about-page-open');
-  if (about && aboutOpen) {
-    var aboutClose = document.getElementById('about-page-close');
+  // Dialogs. Both the about box and the sermon player are modal dialogs, and
+  // the accessibility guidance for them asks for the same four things beyond
+  // showing the box: focus moves inside, Tab stays inside, Escape closes, and
+  // whatever opened it gets focus back. Everything that is not the dialog is
+  // switched off with inert while it is open, so a screen reader cannot wander
+  // into the page behind it; where inert is missing, aria-hidden still hides
+  // the background and the Tab handler keeps the keyboard in.
+  function makeDialog(root, opts) {
+    opts = opts || {};
     var opener = null;
 
-    var focusable = function () {
-      return Array.prototype.filter.call(
-        about.querySelectorAll('a[href], button:not([disabled])'),
-        function (el) { return el.offsetParent !== null; });
-    };
-
-    // Everything that is not the dialog is switched off while it is open, so a
-    // screen reader cannot wander into the page behind it. inert does this for
-    // pointer, keyboard and assistive technology at once; where it is missing,
-    // aria-hidden still hides the background from a screen reader and the Tab
-    // handler below keeps the keyboard inside.
     var siblings = Array.prototype.filter.call(document.body.children, function (el) {
-      return el !== about && el.tagName !== 'SCRIPT';
+      return el !== root && el.tagName !== 'SCRIPT';
     });
     var background = function (off) {
       siblings.forEach(function (el) {
@@ -445,42 +435,86 @@
         else el.removeAttribute('aria-hidden');
       });
     };
-
-    var show = function () {
-      opener = document.activeElement;
-      about.hidden = false;
-      background(true);
-      var first = focusable()[0];
-      if (first) first.focus();
+    var focusable = function () {
+      return Array.prototype.filter.call(
+        root.querySelectorAll('a[href], button:not([disabled]), iframe'),
+        function (el) { return el.offsetParent !== null; });
     };
 
-    var hide = function () {
-      about.hidden = true;
-      background(false);
-      if (opener && opener.focus) opener.focus();
-      opener = null;
+    var api = {
+      open: function (from) {
+        opener = from || document.activeElement;
+        root.hidden = false;
+        background(true);
+        var first = focusable()[0];
+        if (first) first.focus();
+      },
+      close: function () {
+        root.hidden = true;
+        background(false);
+        if (opts.onClose) opts.onClose();
+        if (opener && opener.focus) opener.focus();
+        opener = null;
+      },
+      isOpen: function () { return !root.hidden; }
     };
-
-    aboutOpen.addEventListener('click', show);
-    if (aboutClose) aboutClose.addEventListener('click', hide);
 
     // A click on the backdrop itself, not on the box sitting on top of it.
-    about.addEventListener('click', function (e) {
-      if (e.target === about) hide();
+    root.addEventListener('click', function (e) { if (e.target === root) api.close(); });
+    Array.prototype.forEach.call(root.querySelectorAll('[data-dialog-close]'), function (b) {
+      b.addEventListener('click', api.close);
     });
-
     document.addEventListener('keydown', function (e) {
-      if (about.hidden) return;
-      if (e.key === 'Escape') { hide(); return; }
+      if (root.hidden) return;
+      if (e.key === 'Escape') { api.close(); return; }
       if (e.key !== 'Tab') return;
       var items = focusable();
       if (!items.length) return;
       var first = items[0], last = items[items.length - 1];
-      if (e.shiftKey && document.activeElement === first) {
-        e.preventDefault(); last.focus();
-      } else if (!e.shiftKey && document.activeElement === last) {
-        e.preventDefault(); first.focus();
-      }
+      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+    });
+    return api;
+  }
+
+  // About this site, opened from the footer.
+  var about = document.getElementById('about-page');
+  var aboutOpen = document.getElementById('about-page-open');
+  if (about && aboutOpen) {
+    var aboutDialog = makeDialog(about);
+    aboutOpen.addEventListener('click', function () { aboutDialog.open(aboutOpen); });
+  }
+
+  // Sermon player. The links are real links to YouTube, so they keep working
+  // without this; a plain left click is taken over to play the service here
+  // instead of sending the reader away. The frame is built on open and thrown
+  // away on close, which is what stops the audio carrying on behind the page,
+  // and nothing is requested from YouTube until someone presses play.
+  var player = document.getElementById('sermon-player');
+  if (player) {
+    var slot = player.querySelector('[data-player-slot]');
+    var heading = player.querySelector('[data-player-title]');
+    var playerDialog = makeDialog(player, {
+      onClose: function () { slot.innerHTML = ''; }
+    });
+
+    document.addEventListener('click', function (e) {
+      var link = e.target.closest ? e.target.closest('[data-video]') : null;
+      if (!link) return;
+      // Leave the browser's own ways of opening a link alone.
+      if (e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+      e.preventDefault();
+      slot.innerHTML = '';
+      var frame = document.createElement('iframe');
+      frame.src = 'https://www.youtube-nocookie.com/embed/' +
+        encodeURIComponent(link.dataset.video) + '?autoplay=1&rel=0';
+      frame.title = link.dataset.videoTitle || 'Sermon';
+      frame.allow = 'autoplay; encrypted-media; picture-in-picture; fullscreen';
+      frame.allowFullscreen = true;
+      frame.referrerPolicy = 'origin-when-cross-origin';
+      slot.appendChild(frame);
+      if (heading) heading.textContent = link.dataset.videoTitle || 'Sermon';
+      playerDialog.open(link);
     });
   }
 

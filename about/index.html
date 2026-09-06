@@ -28,8 +28,8 @@
     }
   })();
 </script>
-<link rel="stylesheet" href="/assets/patternfly/patternfly-site.css?v=8a9d951a">
-<link rel="stylesheet" href="/assets/site.css?v=1145b752">
+<link rel="stylesheet" href="/assets/patternfly/patternfly-site.css?v=f12fd7f0">
+<link rel="stylesheet" href="/assets/site.css?v=40f99f9a">
 </head>
 <body>
 <div class="pf-v6-c-page">
@@ -316,7 +316,7 @@
       <img class="pf-v6-c-about-modal-box__brand-image" src="/assets/brand/mark.png?v=8f4706b7" width="208" height="208" alt="">
     </div>
     <div class="pf-v6-c-about-modal-box__close">
-      <button class="pf-v6-c-button pf-m-plain" type="button" id="about-page-close" aria-label="Close About this site">
+      <button class="pf-v6-c-button pf-m-plain" type="button" id="about-page-close" data-dialog-close aria-label="Close About this site">
         <span class="pf-v6-c-button__icon"><svg class="pf-v6-svg" viewBox="0 0 352 512" fill="currentColor" aria-hidden="true" role="img" width="1em" height="1em"><path d="M242.72 256l100.07-100.07c12.28-12.28 12.28-32.19 0-44.48l-22.24-22.24c-12.28-12.28-32.19-12.28-44.48 0L176 189.28 75.93 89.21c-12.28-12.28-32.19-12.28-44.48 0L9.21 111.45c-12.28 12.28-12.28 32.19 0 44.48L109.28 256 9.21 356.07c-12.28 12.28-12.28 32.19 0 44.48l22.24 22.24c12.28 12.28 32.2 12.28 44.48 0L176 322.72l100.07 100.07c12.28 12.28 32.2 12.28 44.48 0l22.24-22.24c12.28-12.28 12.28-32.19 0-44.48L242.72 256z"/></svg></span>
       </button>
     </div>
@@ -327,7 +327,7 @@
       <dl class="pf-v6-c-description-list pf-m-horizontal">
         <div class="pf-v6-c-description-list__group"><dt class="pf-v6-c-description-list__term"><span class="pf-v6-c-description-list__text">Built with</span></dt><dd class="pf-v6-c-description-list__description"><div class="pf-v6-c-description-list__text">PatternFly 6.6.1</div></dd></div>
         <div class="pf-v6-c-description-list__group"><dt class="pf-v6-c-description-list__term"><span class="pf-v6-c-description-list__text">Analytics</span></dt><dd class="pf-v6-c-description-list__description"><div class="pf-v6-c-description-list__text">None. Your visit is not counted.</div></dd></div>
-        <div class="pf-v6-c-description-list__group"><dt class="pf-v6-c-description-list__term"><span class="pf-v6-c-description-list__text">Loaded from elsewhere</span></dt><dd class="pf-v6-c-description-list__description"><div class="pf-v6-c-description-list__text">The map on Plan a visit, from Google</div></dd></div>
+        <div class="pf-v6-c-description-list__group"><dt class="pf-v6-c-description-list__term"><span class="pf-v6-c-description-list__text">Loaded from elsewhere</span></dt><dd class="pf-v6-c-description-list__description"><div class="pf-v6-c-description-list__text">The map on Plan a visit, and a sermon when you press play</div></dd></div>
         <div class="pf-v6-c-description-list__group"><dt class="pf-v6-c-description-list__term"><span class="pf-v6-c-description-list__text">Kept on your device</span></dt><dd class="pf-v6-c-description-list__description"><div class="pf-v6-c-description-list__text">Your light or dark choice</div></dd></div>
         <div class="pf-v6-c-description-list__group"><dt class="pf-v6-c-description-list__term"><span class="pf-v6-c-description-list__text">Licence</span></dt><dd class="pf-v6-c-description-list__description"><div class="pf-v6-c-description-list__text">GPL-2.0, code only</div></dd></div>
         <div class="pf-v6-c-description-list__group"><dt class="pf-v6-c-description-list__term"><span class="pf-v6-c-description-list__text">Made by</span></dt><dd class="pf-v6-c-description-list__description"><div class="pf-v6-c-description-list__text"><a href="https://github.com/gahingwoo">Ga Hing Woo (Jiaxing Hu)</a></div></dd></div>
@@ -341,12 +341,31 @@
   </div>
   </div>
 </div>
+<div class="pf-v6-c-backdrop sermon-backdrop" id="sermon-player" hidden>
+  <div class="pf-v6-l-bullseye">
+  <div class="pf-v6-c-modal-box pf-m-lg" role="dialog" aria-modal="true" aria-labelledby="sermon-player-title">
+    <div class="pf-v6-c-modal-box__close">
+      <button class="pf-v6-c-button pf-m-plain" type="button" data-dialog-close aria-label="Close the player">
+        <span class="pf-v6-c-button__icon"><svg class="pf-v6-svg" viewBox="0 0 352 512" fill="currentColor" aria-hidden="true" role="img" width="1em" height="1em"><path d="M242.72 256l100.07-100.07c12.28-12.28 12.28-32.19 0-44.48l-22.24-22.24c-12.28-12.28-32.19-12.28-44.48 0L176 189.28 75.93 89.21c-12.28-12.28-32.19-12.28-44.48 0L9.21 111.45c-12.28 12.28-12.28 32.19 0 44.48L109.28 256 9.21 356.07c-12.28 12.28-12.28 32.19 0 44.48l22.24 22.24c12.28 12.28 32.2 12.28 44.48 0L176 322.72l100.07 100.07c12.28 12.28 32.2 12.28 44.48 0l22.24-22.24c12.28-12.28 12.28-32.19 0-44.48L242.72 256z"/></svg></span>
+      </button>
+    </div>
+    <header class="pf-v6-c-modal-box__header">
+      <h1 class="pf-v6-c-modal-box__title" id="sermon-player-title">
+        <span class="pf-v6-c-modal-box__title-text" data-player-title>Sermon</span>
+      </h1>
+    </header>
+    <div class="pf-v6-c-modal-box__body">
+      <div class="player-frame" data-player-slot></div>
+    </div>
+  </div>
+  </div>
+</div>
 <div class="pf-v6-c-back-to-top pf-m-hidden" id="back-to-top">
   <a class="pf-v6-c-button pf-m-primary" href="#main-content">
     <span class="pf-v6-c-button__text">Back to top</span>
     <span class="pf-v6-c-button__icon pf-m-end"><svg class="pf-v6-svg" viewBox="0 0 448 512" fill="currentColor" aria-hidden="true" role="img" width="1em" height="1em"><path d="M6.101 359.293 25.9 379.092a12 12 0 0 0 16.971 0L224 198.393l181.13 180.698a12 12 0 0 0 16.971 0l19.799-19.799a12 12 0 0 0 0-16.971L232.485 132.908a12 12 0 0 0-16.971 0L6.101 342.322a12 12 0 0 0 0 16.971z"/></svg></span>
   </a>
 </div>
-<script src="/assets/site.js?v=f7466aef"></script>
+<script src="/assets/site.js?v=5d99877c"></script>
 </body>
 </html>

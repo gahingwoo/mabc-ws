@@ -217,9 +217,11 @@ def render_sermons():
             '<span class="pf-v6-c-description-list__text">%s</span></dt>'
             '<dd class="pf-v6-c-description-list__description">'
             '<div class="pf-v6-c-description-list__text">'
-            '<a href="https://www.youtube.com/watch?v=%s">%s</a>'
+            '<a href="https://www.youtube.com/watch?v=%s" data-video="%s" '
+            'data-video-title="%s">%s</a>'
             '<span class="meta">%s</span></div></dd></div>'
-            % (label, html.escape(it.get("v", "")),
+            % (label, html.escape(it.get("v", "")), html.escape(it.get("v", "")),
+               html.escape("%s, %s" % (label, it.get("t", ""))),
                topic or "Watch the service", html.escape(it.get("t", ""))))
     if not rows:
         return ""
@@ -255,9 +257,10 @@ def render_last_service():
             '<span class="pf-v6-c-description-list__text">Last Sunday</span></dt>'
             '<dd class="pf-v6-c-description-list__description">'
             '<div class="pf-v6-c-description-list__text">'
-            '<a href="https://www.youtube.com/watch?v=%s">%s</a>'
+            '<a href="https://www.youtube.com/watch?v=%s" data-video="%s" '
+            'data-video-title="Last Sunday">%s</a>'
             '<span class="meta">%s, %s</span></div></dd></div>\n'
-            % (html.escape(same[0].get("v", "")),
+            % (html.escape(same[0].get("v", "")), html.escape(same[0].get("v", "")),
                html.escape(topic) if topic else "Watch the service",
                html.escape(label), html.escape(times)))
 
@@ -488,7 +491,7 @@ SHELL = """<!DOCTYPE html>
       <img class="pf-v6-c-about-modal-box__brand-image" src="/assets/brand/mark.png" width="208" height="208" alt="">
     </div>
     <div class="pf-v6-c-about-modal-box__close">
-      <button class="pf-v6-c-button pf-m-plain" type="button" id="about-page-close" aria-label="Close About this site">
+      <button class="pf-v6-c-button pf-m-plain" type="button" id="about-page-close" data-dialog-close aria-label="Close About this site">
         <span class="pf-v6-c-button__icon"><svg class="pf-v6-svg" viewBox="0 0 352 512" fill="currentColor" aria-hidden="true" role="img" width="1em" height="1em"><path d="M242.72 256l100.07-100.07c12.28-12.28 12.28-32.19 0-44.48l-22.24-22.24c-12.28-12.28-32.19-12.28-44.48 0L176 189.28 75.93 89.21c-12.28-12.28-32.19-12.28-44.48 0L9.21 111.45c-12.28 12.28-12.28 32.19 0 44.48L109.28 256 9.21 356.07c-12.28 12.28-12.28 32.19 0 44.48l22.24 22.24c12.28 12.28 32.2 12.28 44.48 0L176 322.72l100.07 100.07c12.28 12.28 32.2 12.28 44.48 0l22.24-22.24c12.28-12.28 12.28-32.19 0-44.48L242.72 256z"/></svg></span>
       </button>
     </div>
@@ -503,6 +506,25 @@ SHELL = """<!DOCTYPE html>
         Copyright &copy; 1915&ndash;%(year)s %(name)s Church. The code behind this site is
         free software under the GNU General Public License, version 2.
       </p>
+    </div>
+  </div>
+  </div>
+</div>
+<div class="pf-v6-c-backdrop sermon-backdrop" id="sermon-player" hidden>
+  <div class="pf-v6-l-bullseye">
+  <div class="pf-v6-c-modal-box pf-m-lg" role="dialog" aria-modal="true" aria-labelledby="sermon-player-title">
+    <div class="pf-v6-c-modal-box__close">
+      <button class="pf-v6-c-button pf-m-plain" type="button" data-dialog-close aria-label="Close the player">
+        <span class="pf-v6-c-button__icon"><svg class="pf-v6-svg" viewBox="0 0 352 512" fill="currentColor" aria-hidden="true" role="img" width="1em" height="1em"><path d="M242.72 256l100.07-100.07c12.28-12.28 12.28-32.19 0-44.48l-22.24-22.24c-12.28-12.28-32.19-12.28-44.48 0L176 189.28 75.93 89.21c-12.28-12.28-32.19-12.28-44.48 0L9.21 111.45c-12.28 12.28-12.28 32.19 0 44.48L109.28 256 9.21 356.07c-12.28 12.28-12.28 32.19 0 44.48l22.24 22.24c12.28 12.28 32.2 12.28 44.48 0L176 322.72l100.07 100.07c12.28 12.28 32.2 12.28 44.48 0l22.24-22.24c12.28-12.28 12.28-32.19 0-44.48L242.72 256z"/></svg></span>
+      </button>
+    </div>
+    <header class="pf-v6-c-modal-box__header">
+      <h1 class="pf-v6-c-modal-box__title" id="sermon-player-title">
+        <span class="pf-v6-c-modal-box__title-text" data-player-title>Sermon</span>
+      </h1>
+    </header>
+    <div class="pf-v6-c-modal-box__body">
+      <div class="player-frame" data-player-slot></div>
     </div>
   </div>
   </div>
@@ -558,7 +580,8 @@ def about_rows(pf_version):
     rows = [
         ("Built with", html.escape(pf_version)),
         ("Analytics", "None. Your visit is not counted."),
-        ("Loaded from elsewhere", "The map on Plan a visit, from Google"),
+        ("Loaded from elsewhere",
+         "The map on Plan a visit, and a sermon when you press play"),
         ("Kept on your device", "Your light or dark choice"),
         ("Licence", "GPL-2.0, code only"),
         ("Made by", link(AUTHOR_URL, AUTHOR)),

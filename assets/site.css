@@ -657,3 +657,21 @@ a[href^="mailto:"]:not(:where(.pf-v6-c-nav__link))::after,
   background: var(--pf-t--global--background--color--primary--default);
 }
 .redirect .pf-v6-c-spinner { margin-bottom: var(--pf-t--global--spacer--lg); }
+
+/* ---- sermon player ----
+   PatternFly's modal box holding a YouTube frame. An iframe has no intrinsic
+   ratio, so one is stated, the same way the map is handled. The frame is only
+   built when someone presses play, so nothing is asked of YouTube before then. */
+.sermon-backdrop .pf-v6-c-modal-box {
+  width: min(64rem, calc(100vw - 2 * var(--pf-t--global--spacer--lg)));
+  border-radius: var(--pf-t--global--border--radius--large);
+}
+.player-frame {
+  display: block;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  background: var(--pf-t--global--background--color--secondary--default);
+  border-radius: var(--pf-t--global--border--radius--small);
+  overflow: hidden;
+}
+.player-frame iframe { display: block; width: 100%; height: 100%; border: 0; }
