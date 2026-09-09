@@ -61,7 +61,7 @@ EMAIL = "office@mabc.org.nz"
 # footer links here. Point it at the repository once it has one.
 SOURCE = "https://github.com/gahingwoo/mabc-ws"
 AUTHOR = "Ga Hing Woo (Jiaxing Hu)"
-AUTHOR_URL = "https://github.com/gahingwoo"
+AUTHOR_URL = "https://gahingwoo.com"
 
 # slug, directory, page title, subtitle shown beside it, meta description
 PAGES = [
@@ -502,6 +502,15 @@ SHELL = """<!DOCTYPE html>
       <dl class="pf-v6-c-description-list pf-m-horizontal">
 %(aboutrows)s
       </dl>
+      <p class="credit-badge">
+        <!-- One element, and the stylesheet picks which of the two files it
+             draws: a hidden <img> is fetched anyway, so the pair would cost
+             every visitor both downloads to show one. -->
+        <a class="credit-badge__link" href="%(author_url)s">
+          <span class="credit-badge__art" role="img"
+                aria-label="Engineered by gahingwoo"></span>
+        </a>
+      </p>
       <p class="pf-v6-c-about-modal-box__strapline">
         Copyright &copy; 1915&ndash;%(year)s %(name)s Church. The code behind this site is
         free software under the GNU General Public License, version 2.

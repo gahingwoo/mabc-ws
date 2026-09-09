@@ -248,8 +248,11 @@ a[href^="mailto:"]:not(:where(.pf-v6-c-nav__link))::after,
 .pf-v6-c-nav__link-text::after { margin-inline-start: auto !important; }
 
 /* Not on the masthead's own controls, nor in print, where the address is
-   already spelled out and the glyph would be noise. */
-.pf-v6-c-masthead a::after { content: none; }
+   already spelled out and the glyph would be noise. Nor on the badge, which
+   is an image: the marker had nowhere to sit beside it and dropped onto a
+   line of its own underneath. */
+.pf-v6-c-masthead a::after,
+.credit-badge__link::after { content: none; }
 /* The photograph beside the opening words, as patternfly.org sets its
    illustration: a flex item that stretches to the height of the text. */
 .home-photo {
@@ -637,9 +640,38 @@ a[href^="mailto:"]:not(:where(.pf-v6-c-nav__link))::after,
   --pf-v6-c-about-modal-box--Height: auto;
   --pf-v6-c-about-modal-box--lg--Height: auto;
   border-radius: var(--pf-t--global--border--radius--large);
-  width: min(46rem, calc(100vw - 2 * var(--pf-t--global--spacer--lg)));
+  /* Wider than PatternFly's own about box, because this one is a table of
+     ten rows rather than a version number: at 46rem the terms and their
+     values were crowded into two narrow columns with the artwork squeezed
+     behind them. */
+  width: min(58rem, calc(100vw - 2 * var(--pf-t--global--spacer--lg)));
   max-height: calc(100dvh - 2 * var(--pf-t--global--spacer--lg));
   overflow-y: auto;
+}
+
+/* The term column can afford to be a term wide now rather than wrapping
+   "Loaded from elsewhere" onto three lines. */
+.about-backdrop .pf-v6-c-description-list {
+  --pf-v6-c-description-list--m-horizontal__term--width: minmax(0, 12rem);
+}
+
+/* The badge is drawn as a background rather than an <img>, because a hidden
+   <img> is still fetched: the light/dark pair would cost every visitor both
+   files to show one. A background-image on a rule that does not apply is
+   never requested, so the theme picks exactly one. */
+.credit-badge { margin-block-start: var(--pf-t--global--spacer--lg); }
+.credit-badge__link { display: inline-block; }
+.credit-badge__art {
+  display: block;
+  width: 11.25rem;
+  aspect-ratio: 360 / 110;
+  background-image: url("/assets/img/credit-badge-light.svg");
+  background-repeat: no-repeat;
+  background-position: left center;
+  background-size: contain;
+}
+html.pf-v6-theme-dark .credit-badge__art {
+  background-image: url("/assets/img/credit-badge-dark.svg");
 }
 /* Below sm the box is one column, so the pattern would sit under the text. */
 @media (max-width: 35.99rem) {
