@@ -649,10 +649,28 @@ a[href^="mailto:"]:not(:where(.pf-v6-c-nav__link))::after,
   overflow-y: auto;
 }
 
-/* The term column can afford to be a term wide now rather than wrapping
-   "Loaded from elsewhere" onto three lines. */
-.about-backdrop .pf-v6-c-description-list {
-  --pf-v6-c-description-list--m-horizontal__term--width: minmax(0, 12rem);
+/* Every group in a horizontal description list is its own grid, so the term
+   column is only as wide as that row needs unless it is told a width. Given a
+   minmax() it can still shrink, and "Loaded from elsewhere" — the one term
+   long enough to want the room — pulled its own value twenty pixels left of
+   every other value in the list. A fixed width lines them all up, and it is
+   wide enough that the longest term stays on one line.
+
+   Only where there is room for it. On a phone a fixed twelve-rem column left
+   ninety pixels for the value and clipped it, so below md the two stack: the
+   term on its own line with the value under it, which is what a narrow column
+   wants anyway. */
+@media (min-width: 48rem) {
+  .about-backdrop .pf-v6-c-description-list {
+    --pf-v6-c-description-list--m-horizontal__term--width: 12rem;
+  }
+}
+
+@media (max-width: 47.99rem) {
+  .about-backdrop .pf-v6-c-description-list__group {
+    grid-template-columns: 1fr;
+    row-gap: var(--pf-t--global--spacer--xs);
+  }
 }
 
 /* The badge is drawn as a background rather than an <img>, because a hidden
