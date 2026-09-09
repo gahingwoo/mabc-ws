@@ -62,6 +62,7 @@ EMAIL = "office@mabc.org.nz"
 SOURCE = "https://github.com/gahingwoo/mabc-ws"
 AUTHOR = "Ga Hing Woo (Jiaxing Hu)"
 AUTHOR_URL = "https://gahingwoo.com"
+AUTHOR_CODE = "https://github.com/gahingwoo"
 
 # slug, directory, page title, subtitle shown beside it, meta description
 PAGES = [
@@ -505,8 +506,11 @@ SHELL = """<!DOCTYPE html>
       <p class="credit-badge">
         <!-- One element, and the stylesheet picks which of the two files it
              draws: a hidden <img> is fetched anyway, so the pair would cost
-             every visitor both downloads to show one. -->
-        <a class="credit-badge__link" href="%(author_url)s">
+             every visitor both downloads to show one.
+
+             The badge is the engineering credit, so it goes to the code. The
+             person's own site is one row above it, against "Made by". -->
+        <a class="credit-badge__link" href="%(author_code)s">
           <span class="credit-badge__art" role="img"
                 aria-label="Engineered by gahingwoo"></span>
         </a>
@@ -678,7 +682,8 @@ def build():
             canonical=SITE + href, site=SITE, name=NAME, address=ADDRESS,
             heading=heading,
             phone=PHONE, email=EMAIL, year=date.today().year,
-            author=AUTHOR, author_url=AUTHOR_URL, source=SOURCE,
+            author=AUTHOR, author_url=AUTHOR_URL, author_code=AUTHOR_CODE,
+            source=SOURCE,
             head="" if slug == "index" else (
                 '            <div class="page-head">\n'
                 '              <h1 class="page-title" id="page-title">%s <span class="subtitle">%s</span></h1>\n'
