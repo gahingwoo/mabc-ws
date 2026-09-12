@@ -263,15 +263,29 @@ def render_last_service():
     label = when.strftime("%-d %B")
     if when.year != date.today().year:
         label += when.strftime(" %Y")
+    # "Last Sunday" was written into the markup, and the first time the site
+    # caught up with a service on the morning it happened it called that
+    # morning last week. The term follows the date: a service held today is
+    # today's, one from the past week is last Sunday's, and anything older says
+    # only that it is the most recent, since a fortnight-old service is not
+    # last Sunday's either.
+    days = (date.today() - when).days
+    if days <= 0:
+        term = "Today"
+    elif days <= 7:
+        term = "Last Sunday"
+    else:
+        term = "Most recent" 
     return ('    <div class="pf-v6-c-description-list__group">'
             '<dt class="pf-v6-c-description-list__term">'
-            '<span class="pf-v6-c-description-list__text">Last Sunday</span></dt>'
+            '<span class="pf-v6-c-description-list__text">%s</span></dt>'
             '<dd class="pf-v6-c-description-list__description">'
             '<div class="pf-v6-c-description-list__text">'
             '<a href="https://www.youtube.com/watch?v=%s" data-video="%s" '
-            'data-video-title="Last Sunday">%s</a>'
+            'data-video-title="%s">%s</a>'
             '<span class="meta">%s</span></div></dd></div>\n'
-            % (html.escape(same[0].get("v", "")), html.escape(same[0].get("v", "")),
+            % (html.escape(term), html.escape(same[0].get("v", "")),
+               html.escape(same[0].get("v", "")), html.escape(term),
                html.escape(topic) if topic else "Watch the service",
                html.escape("%s, %s" % (label, times) if times else label)))
 
