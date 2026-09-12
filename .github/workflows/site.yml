@@ -6,8 +6,19 @@ on:
   # The sermon list is only as current as the last build, and the church
   # streams every Sunday. Rebuilt each morning so it keeps up without anyone
   # pushing. 18:00 UTC is early morning in Auckland.
+  #
+  # The morning build runs before either service, so all of Sunday the site
+  # showed the week before. These four catch each service once it is over,
+  # under both of Auckland's offsets: 9am is 21:00 UTC in winter and 20:00 in
+  # summer, 11am is 23:00 and 22:00, and a service runs a little over an hour.
+  # Cron here is UTC and has no notion of daylight saving, so the window is
+  # covered rather than aimed at.
   schedule:
     - cron: "0 18 * * *"
+    - cron: "30 21 * * 6"
+    - cron: "30 22 * * 6"
+    - cron: "30 23 * * 6"
+    - cron: "30 0 * * 0"
 
 permissions:
   contents: read

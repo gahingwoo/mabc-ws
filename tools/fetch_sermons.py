@@ -113,12 +113,26 @@ def main():
         if "funeral" in title.lower():
             continue
         when = service_time(title)
-        if not when:
-            continue
         held = service_date(title, datetime.date(*map(int, published.split("-"))))
         if held > today:                        # a stream opened in advance
             continue
-        out.append({"d": held.isoformat(), "t": when, "s": topic(title), "v": vid})
+        # A title that names its service carries the time; one that does not is
+        # kept anyway if it was held on a Sunday. Requiring the time threw away
+        # a whole morning's service because whoever opened the stream wrote the
+        # date and the sermon title and not the hour, and the site went on
+        # showing the week before as though nothing had happened.
+        #
+        # That weakens the funeral guard, which was two checks so that neither
+        # had to hold on its own: the name, and the time of day. The Sunday test
+        # is what stands in for the second one. A funeral held on a Sunday and
+        # not called a funeral would now get through, which the time check would
+        # also have missed if it had been titled 11am.
+        if not when and held.weekday() != 6:    # Monday is 0, Sunday is 6
+            continue
+        row = {"d": held.isoformat(), "t": when, "s": topic(title), "v": vid}
+        if not when:
+            del row["t"]
+        out.append(row)
 
     if not out:
         print("feed had no past Sunday services; keeping the existing file")
@@ -126,12 +140,12 @@ def main():
 
     # "11am" sorts before "9am" as a string, so the hour is compared as a
     # number and the later service of a Sunday comes first.
-    out.sort(key=lambda r: (r["d"], int(r["t"][:-2])), reverse=True)
+    out.sort(key=lambda r: (r["d"], int(r["t"][:-2]) if r.get("t") else 0), reverse=True)
     out = out[:KEEP]
     OUT.write_text(json.dumps(out, separators=(",", ":")) + "\n", encoding="utf-8")
     print("%d services, newest %s" % (len(out), out[0]["d"]))
     for r in out:
-        print("  %s  %-4s %s" % (r["d"], r["t"], r["s"] or "—"))
+        print("  %s  %-4s %s" % (r["d"], r.get("t") or "?", r["s"] or "—"))
     return 0
 
 

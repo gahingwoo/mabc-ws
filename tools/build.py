@@ -212,6 +212,12 @@ def render_sermons():
         if when.year != date.today().year:
             label += when.strftime(" %Y")
         topic = html.escape(it.get("s") or "")
+        # A service whose title never said which hour it was: the row
+        # carries the date and what it was about, and says nothing about
+        # a time it does not know. Better than the trailing comma and the
+        # empty line that fell out of pretending it had one.
+        when_label = it.get("t") or ""
+        full_label = "%s, %s" % (label, when_label) if when_label else label
         rows.append(
             '        <div class="pf-v6-c-description-list__group">'
             '<dt class="pf-v6-c-description-list__term">'
@@ -219,11 +225,12 @@ def render_sermons():
             '<dd class="pf-v6-c-description-list__description">'
             '<div class="pf-v6-c-description-list__text">'
             '<a href="https://www.youtube.com/watch?v=%s" data-video="%s" '
-            'data-video-title="%s">%s</a>'
-            '<span class="meta">%s</span></div></dd></div>'
+            'data-video-title="%s">%s</a>%s</div></dd></div>'
             % (label, html.escape(it.get("v", "")), html.escape(it.get("v", "")),
-               html.escape("%s, %s" % (label, it.get("t", ""))),
-               topic or "Watch the service", html.escape(it.get("t", ""))))
+               html.escape(full_label),
+               topic or "Watch the service",
+               '<span class="meta">%s</span>' % html.escape(when_label)
+               if when_label else ""))
     if not rows:
         return ""
     return ('<div class="pf-v6-u-mt-lg"><dl class="pf-v6-c-description-list '
@@ -248,7 +255,10 @@ def render_last_service():
         when = date.fromisoformat(newest)
     except ValueError:
         return ""
-    times = " and ".join(dict.fromkeys(i["t"] for i in reversed(same)))
+    # A service whose title never named its hour contributes nothing here, and
+    # the line reads as the date alone rather than as a date with a stray comma.
+    times = " and ".join(dict.fromkeys(
+        i["t"] for i in reversed(same) if i.get("t")))
     topic = next((i.get("s") for i in same if i.get("s")), "")
     label = when.strftime("%-d %B")
     if when.year != date.today().year:
@@ -260,10 +270,10 @@ def render_last_service():
             '<div class="pf-v6-c-description-list__text">'
             '<a href="https://www.youtube.com/watch?v=%s" data-video="%s" '
             'data-video-title="Last Sunday">%s</a>'
-            '<span class="meta">%s, %s</span></div></dd></div>\n'
+            '<span class="meta">%s</span></div></dd></div>\n'
             % (html.escape(same[0].get("v", "")), html.escape(same[0].get("v", "")),
                html.escape(topic) if topic else "Watch the service",
-               html.escape(label), html.escape(times)))
+               html.escape("%s, %s" % (label, times) if times else label)))
 
 
 def render_nav(current):
