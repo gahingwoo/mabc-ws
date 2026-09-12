@@ -79,6 +79,10 @@ PAGES = [
     ("get-involved", "get-involved", "Get involved", "Life groups, courses and missions",
      "Life Groups, Alpha and the other courses, global missions, the "
      "Newcomers' Lunch and 60+ Morning Tea at Mt Albert Baptist."),
+    ("ministries", "ministries", "Ministries", "Everything this church runs",
+     "Children and youth, life groups and courses, global missions and "
+     "international ministries, and what Mt Albert Baptist runs for the "
+     "neighbourhood, in one place."),
     ("community", "community", "Community", "What we run for the neighbourhood",
      "The Mt Albert Community Pop Up, the Toy Library, English classes and the "
      "Glow Party — what Mt Albert Baptist runs for the neighbourhood."),
@@ -96,6 +100,7 @@ NAV = [
         ("Home", "/"),
         ("Plan a visit", "/visit/"),
         ("Kids and youth", "/next-gen/"),
+        ("Ministries", "/ministries/"),
     ]),
     ("Get involved", [
         ("Life groups and courses", "/get-involved/"),
