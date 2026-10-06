@@ -171,6 +171,22 @@ html.pf-v6-theme-dark .theme-toggle .icon-moon { display: none; }
 @media (min-width: 75rem) { .site-backdrop { display: none !important; } }
 @media (prefers-reduced-motion: reduce) { .site-backdrop { transition: none; } }
 
+/* Dialogs (About, the sermon player) fade in and their box drifts up a little
+   as it arrives; site.js holds [hidden] off until the fade out has run. */
+.site-dialog {
+  opacity: 0;
+  transition: opacity var(--pf-t--global--motion--duration--fade--default, 0.2s) var(--pf-t--global--motion--timing-function--accelerate, ease-in);
+}
+.site-dialog.is-open {
+  opacity: 1;
+  transition-timing-function: var(--pf-t--global--motion--timing-function--decelerate, ease-out);
+}
+.site-dialog :is(.pf-v6-c-about-modal-box, .pf-v6-c-modal-box) {
+  translate: 0 -0.75rem;
+  transition: translate var(--pf-t--global--motion--duration--fade--default, 0.2s) var(--pf-t--global--motion--timing-function--decelerate, ease-out);
+}
+.site-dialog.is-open :is(.pf-v6-c-about-modal-box, .pf-v6-c-modal-box) { translate: 0 0; }
+
 /* The hamburger morph runs at the icon default, which reads as a flick on a
    phone where the panel beside it takes a slide-in to arrive. Give it the
    slide's duration so the two finish together. */

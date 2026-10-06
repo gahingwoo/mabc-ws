@@ -441,22 +441,37 @@
         function (el) { return el.offsetParent !== null; });
     };
 
+    // A dialog fades, as the drawer's backdrop does. [hidden] comes off and
+    // it is laid out at no opacity before the class that fades it in goes on;
+    // going, the class comes off first and [hidden] goes back only once the
+    // fade has run. Toggling [hidden] alone snapped it open and shut.
+    root.classList.add('site-dialog');
     var api = {
       open: function (from) {
         opener = from || document.activeElement;
         root.hidden = false;
+        void root.offsetHeight;
+        root.classList.add('is-open');
         background(true);
         var first = focusable()[0];
         if (first) first.focus();
       },
       close: function () {
-        root.hidden = true;
+        if (!root.classList.contains('is-open')) return;
+        root.classList.remove('is-open');
         background(false);
-        if (opts.onClose) opts.onClose();
         if (opener && opener.focus) opener.focus();
         opener = null;
+        window.setTimeout(function () {
+          if (root.classList.contains('is-open')) return;
+          root.hidden = true;
+          // After the fade, so the sermon frame is not emptied while it is
+          // still on screen. Emptying it is what stops the sound, so a
+          // service plays on for the fifth of a second the fade takes.
+          if (opts.onClose) opts.onClose();
+        }, 250);
       },
-      isOpen: function () { return !root.hidden; }
+      isOpen: function () { return root.classList.contains('is-open'); }
     };
 
     // A click on the backdrop itself, not on the box sitting on top of it.
@@ -465,7 +480,7 @@
       b.addEventListener('click', api.close);
     });
     document.addEventListener('keydown', function (e) {
-      if (root.hidden) return;
+      if (!api.isOpen()) return;
       if (e.key === 'Escape') { api.close(); return; }
       if (e.key !== 'Tab') return;
       var items = focusable();
