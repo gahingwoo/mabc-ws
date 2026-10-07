@@ -57,8 +57,8 @@ NAME = "Mt Albert Baptist"
 ADDRESS = "732 New North Road, Mt Albert, Auckland"
 PHONE = "09 849 2849"
 EMAIL = "office@mabc.org.nz"
-# The GPL asks that whoever receives the site can get at what built it, so the
-# footer links here. Point it at the repository once it has one.
+# The AGPL asks that whoever uses the site over a network can get at what
+# built it, so the footer links here.
 SOURCE = "https://github.com/gahingwoo/mabc-ws"
 AUTHOR = "Ga Hing Woo (Jiaxing Hu)"
 AUTHOR_URL = "https://gahingwoo.com"
@@ -625,7 +625,7 @@ def about_rows(pf_version):
         ("Loaded from elsewhere",
          "The map on Plan a visit, and a sermon when you press play"),
         ("Kept on your device", "Your light or dark choice"),
-        ("Licence", "GPL-2.0, code only"),
+        ("Licence", "AGPL-3.0-or-later, code only"),
         ("Made by", link(AUTHOR_URL, AUTHOR)),
         ("Source", link(SOURCE, SOURCE.replace("https://", ""))),
     ]

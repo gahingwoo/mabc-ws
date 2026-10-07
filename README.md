@@ -21,7 +21,8 @@ confirming with the church office; image rights are noted in
 
 Copyright (C) 2026 Jiaxing Hu <gahing@gahingwoo.com>
 
-The code is GPL-2.0, see [LICENSE](LICENSE). It does not cover the church's own
+The code is free software under the GNU Affero General Public License, version 3
+or (at your option) any later version, see [LICENSE](LICENSE). It does not cover the church's own
 material: the text, the photographs in `assets/img/` and the brand artwork in
 `assets/brand/` belong to Mt Albert Baptist Church. `assets/patternfly/` is a
 build of [PatternFly](https://www.patternfly.org/), which is MIT.
