@@ -20,9 +20,13 @@ be read off it at build time instead of being typed in by hand.
 
     python3 tools/fetch_sermons.py
 
-Writes assets/sermons.json. On any network or parsing failure it leaves the
-existing file alone and exits 0: a site that builds with last week's list is
-better than one that does not build.
+Writes assets/sermons.json. The feed is unreliable from build machines (a 404
+or a 500 on one try, fine on the next), so it is asked several times, at two
+addresses. If it still cannot be read, the list kept is the newer of the one in
+the repository and the one the site is serving now, and it exits 0: a site that
+builds with last week's list is better than one that does not build. Keeping
+only the repository's copy put the site back to whenever that was committed,
+September, every time the feed failed once.
 
 Two things are deliberately excluded. Funerals are livestreamed on this channel
 too, and a family's funeral does not belong in a list of recent sermons; they
@@ -35,13 +39,21 @@ import json
 import pathlib
 import re
 import sys
+import time
 import urllib.request
 import xml.etree.ElementTree as ET
+import zoneinfo
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 OUT = ROOT / "assets/sermons.json"
 CHANNEL = "UCw-WtY0mh2VpZUVWl0zdJ8w"
-FEED = "https://www.youtube.com/feeds/videos.xml?channel_id=" + CHANNEL
+# The channel's feed, and the same uploads as a playlist ("UC" becomes "UU"),
+# which YouTube serves separately and which answers when the other does not.
+FEEDS = ["https://www.youtube.com/feeds/videos.xml?channel_id=" + CHANNEL,
+         "https://www.youtube.com/feeds/videos.xml?playlist_id=UU" + CHANNEL[2:]]
+# The church's own day. The build machine's is UTC, which is still Saturday
+# during Sunday morning's services, and a service "not held yet" is dropped.
+CHURCH_TZ = zoneinfo.ZoneInfo("Pacific/Auckland")
 KEEP = 6
 
 NS = {"a": "http://www.w3.org/2005/Atom", "yt": "http://www.youtube.com/xml/schemas/2015"}
@@ -87,19 +99,56 @@ def topic(title):
 
 
 def fetch():
-    with urllib.request.urlopen(FEED, timeout=30) as r:
-        return ET.fromstring(r.read())
+    """The feed, from whichever address answers first; three rounds."""
+    last = None
+    for attempt in range(3):
+        if attempt:
+            time.sleep(5 * attempt)
+        for url in FEEDS:
+            try:
+                with urllib.request.urlopen(url, timeout=30) as r:
+                    return ET.fromstring(r.read())
+            except Exception as e:              # network, DNS, XML, anything
+                print("could not refresh (%s): %s" % (url.split("?")[1][:11], e))
+                last = e
+    raise last
+
+
+def newest(items):
+    return max((i.get("d", "") for i in items), default="")
+
+
+def keep_newest():
+    """The feed could not be read: keep whichever list is newer, the
+    repository's or the one the site serves now."""
+    try:
+        here = json.loads(OUT.read_text(encoding="utf-8"))
+    except (OSError, ValueError):
+        here = []
+    try:
+        domain = (ROOT / "CNAME").read_text(encoding="utf-8").strip()
+        with urllib.request.urlopen("https://%s/assets/sermons.json" % domain, timeout=30) as r:
+            live = json.loads(r.read())
+        if not isinstance(live, list):
+            live = []
+    except Exception as e:
+        print("could not read the live list either: %s" % e)
+        live = []
+    if live and newest(live) > newest(here):
+        OUT.write_text(json.dumps(live, separators=(",", ":")) + "\n", encoding="utf-8")
+        print("kept the list the site serves now, newest %s" % newest(live))
+    else:
+        print("kept %s, newest %s" % (OUT.relative_to(ROOT), newest(here) or "none"))
 
 
 def main():
     try:
         root = fetch()
-    except Exception as e:                      # network, DNS, XML, anything
-        print("could not refresh: %s" % e)
-        print("keeping %s as it is" % OUT.relative_to(ROOT))
+    except Exception:
+        keep_newest()
         return 0
 
-    today = datetime.date.today()
+    today = datetime.datetime.now(CHURCH_TZ).date()
     out = []
     for entry in root.findall("a:entry", NS):
         title = (entry.findtext("a:title", "", NS) or "").strip()

@@ -34,7 +34,15 @@ import json
 import pathlib
 import re
 import sys
-from datetime import date
+from datetime import date, datetime
+from zoneinfo import ZoneInfo
+
+
+def church_today():
+    """Today in Auckland. The build machine runs on UTC, which is a day behind
+    for half of every NZ day: the Monday-morning build called Sunday's service
+    "Today"."""
+    return datetime.now(ZoneInfo("Pacific/Auckland")).date()
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 CONTENT = ROOT / "content"
@@ -214,7 +222,7 @@ def render_sermons():
         # "Sunday 6 September" reads as a date to a person; the year is only
         # spelled out once it is not the current one.
         label = when.strftime("%A %-d %B")
-        if when.year != date.today().year:
+        if when.year != church_today().year:
             label += when.strftime(" %Y")
         topic = html.escape(it.get("s") or "")
         # A service whose title never said which hour it was: the row
@@ -266,7 +274,7 @@ def render_last_service():
         i["t"] for i in reversed(same) if i.get("t")))
     topic = next((i.get("s") for i in same if i.get("s")), "")
     label = when.strftime("%-d %B")
-    if when.year != date.today().year:
+    if when.year != church_today().year:
         label += when.strftime(" %Y")
     # "Last Sunday" was written into the markup, and the first time the site
     # caught up with a service on the morning it happened it called that
@@ -274,7 +282,7 @@ def render_last_service():
     # today's, one from the past week is last Sunday's, and anything older says
     # only that it is the most recent, since a fortnight-old service is not
     # last Sunday's either.
-    days = (date.today() - when).days
+    days = (church_today() - when).days
     if days <= 0:
         term = "Today"
     elif days <= 7:
@@ -710,7 +718,7 @@ def build():
             description=html.escape(description),
             canonical=SITE + href, site=SITE, name=NAME, address=ADDRESS,
             heading=heading,
-            phone=PHONE, email=EMAIL, year=date.today().year,
+            phone=PHONE, email=EMAIL, year=church_today().year,
             author=AUTHOR, author_url=AUTHOR_URL, author_code=AUTHOR_CODE,
             source=SOURCE,
             head="" if slug == "index" else (
@@ -735,7 +743,7 @@ def build():
         target.parent.mkdir(parents=True, exist_ok=True)
         target.write_text(ASSET.sub(stamp, STUB % {"site": SITE, "to": to}), encoding="utf-8")
 
-    today = date.today().isoformat()
+    today = church_today().isoformat()
     (ROOT / "sitemap.xml").write_text(
         '<?xml version="1.0" encoding="UTF-8"?>\n'
         '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n'
