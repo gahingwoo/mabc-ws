@@ -27,9 +27,18 @@
       document.documentElement.classList.add('pf-v6-theme-dark');
     }
   })();
+  // Arriving from another of this site's pages, the sidebar's current-item
+  // bar grows in as PatternFly's does when an item is clicked, rather than
+  // fading with the rest of the page (site.css has the animation).
+  addEventListener('pagereveal', function (e) {
+    if (!e.viewTransition) return;
+    var root = document.documentElement;
+    root.classList.add('nav-accent-enter');
+    setTimeout(function () { root.classList.remove('nav-accent-enter'); }, 1000);
+  });
 </script>
 <link rel="stylesheet" href="/assets/patternfly/patternfly-site.css?v=e6d8d01b">
-<link rel="stylesheet" href="/assets/site.css?v=96fccb37">
+<link rel="stylesheet" href="/assets/site.css?v=2b03fab8">
 </head>
 <body>
 <div class="pf-v6-c-page">

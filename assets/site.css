@@ -149,6 +149,19 @@ html.pf-v6-theme-dark .theme-toggle .icon-moon { display: none; }
 .pf-v6-c-masthead { view-transition-name: masthead; }
 .pf-v6-c-page__sidebar { view-transition-name: sidebar; }
 .pf-v6-c-page__main { view-transition-name: main; }
+
+/* PatternFly grows the current item's bar in when the item changes. Here every
+   item is its own page, so the change is a navigation: the sidebar is shown
+   as the new page draws it rather than cross-faded from the old one, and the
+   new page grows its bar in from nothing, with the component's own duration
+   and easing, while the head script marks the arrival. */
+::view-transition-old(sidebar) { display: none; }
+::view-transition-new(sidebar) { animation: none; }
+.nav-accent-enter .pf-v6-c-nav__item:has(> .pf-v6-c-nav__link.pf-m-current)::before {
+  animation: nav-accent-in var(--pf-v6-c-nav__item--current--accent--TransitionDuration)
+    var(--pf-v6-c-nav__item--accent--TransitionTimingFunction) both;
+}
+@keyframes nav-accent-in { from { scale: 1 0; } }
 @media (prefers-reduced-motion: reduce) {
   ::view-transition-group(*), ::view-transition-old(*), ::view-transition-new(*) { animation: none !important; }
 }

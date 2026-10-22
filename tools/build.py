@@ -377,6 +377,15 @@ SHELL = """<!DOCTYPE html>
       document.documentElement.classList.add('pf-v6-theme-dark');
     }
   })();
+  // Arriving from another of this site's pages, the sidebar's current-item
+  // bar grows in as PatternFly's does when an item is clicked, rather than
+  // fading with the rest of the page (site.css has the animation).
+  addEventListener('pagereveal', function (e) {
+    if (!e.viewTransition) return;
+    var root = document.documentElement;
+    root.classList.add('nav-accent-enter');
+    setTimeout(function () { root.classList.remove('nav-accent-enter'); }, 1000);
+  });
 </script>
 %(jsonld)s<link rel="stylesheet" href="%(pf_css)s">
 <link rel="stylesheet" href="%(site_css)s">
